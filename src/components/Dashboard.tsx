@@ -1,12 +1,27 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { RegionalData } from '../types';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   LineChart, Line, ScatterChart, Scatter, ZAxis
 } from 'recharts';
-import { AlertTriangle, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { AlertTriangle, TrendingUp, DollarSign, Activity, Calendar } from 'lucide-react';
 
 export default function Dashboard({ data }: { data: RegionalData[] }) {
+  const availableYears = useMemo(() => {
+    return Array.from(new Set(data.map(d => d.Year))).sort((a, b) => b - a);
+  }, [data]);
+
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>(availableYears[0] || 'all');
+
+  // Update selected year if data changes and current selection is invalid
+  React.useEffect(() => {
+    if (availableYears.length > 0 && selectedYear !== 'all' && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    } else if (availableYears.length > 0 && selectedYear === 'all' && availableYears.length === 1) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedYear]);
+
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
@@ -17,17 +32,25 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
     );
   }
 
+  const filteredData = selectedYear === 'all' 
+    ? data 
+    : data.filter(d => d.Year === selectedYear);
+
   // Calculate summary metrics
-  const totalRegions = data.length;
-  const avgFiscalCapacity = data.reduce((acc, curr) => acc + (curr.Fiscal_Capacity_Index || 0), 0) / totalRegions;
-  const highRiskRegions = data.filter(d => d.Fiscal_Risk === 'High risk' || d.Fiscal_Risk === 'Severe fiscal stress').length;
-  const avgTransferDependency = data.reduce((acc, curr) => acc + (curr.Transfer_Dependency || 0), 0) / totalRegions;
+  // If 'all' is selected, we might want to get unique regions or just average everything.
+  // For unique regions count:
+  const uniqueRegionsCount = new Set(filteredData.map(d => d.Region)).size;
+  const totalRecords = filteredData.length;
+  
+  const avgFiscalCapacity = filteredData.reduce((acc, curr) => acc + (curr.Fiscal_Capacity_Index || 0), 0) / (totalRecords || 1);
+  const highRiskRegions = filteredData.filter(d => d.Fiscal_Risk === 'High risk' || d.Fiscal_Risk === 'Severe fiscal stress').length;
+  const avgTransferDependency = filteredData.reduce((acc, curr) => acc + (curr.Transfer_Dependency || 0), 0) / (totalRecords || 1);
 
   // Prepare data for charts
-  const topRegionsByGDP = [...data].sort((a, b) => b.GDP_Growth - a.GDP_Growth).slice(0, 5);
+  const topRegionsByGDP = [...filteredData].sort((a, b) => b.GDP_Growth - a.GDP_Growth).slice(0, 5);
   
-  const dependencyVsCapacity = data.map(d => ({
-    name: d.Region,
+  const dependencyVsCapacity = filteredData.map(d => ({
+    name: `${d.Region} (${d.Year})`,
     dependency: d.Transfer_Dependency || 0,
     capacity: d.Fiscal_Capacity_Index || 0,
     stress: d.Fiscal_Stress_Score || 0
@@ -35,13 +58,32 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
 
   return (
     <div className="space-y-6">
+      {/* Header with Filter */}
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <h2 className="text-lg font-semibold text-slate-800">Ringkasan Eksekutif</h2>
+        <div className="flex items-center space-x-2">
+          <Calendar size={18} className="text-slate-500" />
+          <span className="text-sm font-medium text-slate-700">Tahun:</span>
+          <select 
+            className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+          >
+            <option value="all">Semua Tahun</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <SummaryCard 
-          title="Total Daerah Dianalisis" 
-          value={totalRegions.toString()} 
+          title="Total Daerah" 
+          value={uniqueRegionsCount.toString()} 
           icon={<Activity className="text-blue-500" />} 
-          trend="Data yang dimuat"
+          trend={selectedYear === 'all' ? `${totalRecords} total data` : `Tahun ${selectedYear}`}
         />
         <SummaryCard 
           title="Rata-rata Kapasitas Fiskal" 
@@ -53,7 +95,7 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
           title="Daerah Risiko Tinggi" 
           value={highRiskRegions.toString()} 
           icon={<AlertTriangle className="text-rose-500" />} 
-          trend={`${((highRiskRegions/totalRegions)*100).toFixed(1)}% dari total`}
+          trend={`${((highRiskRegions/(totalRecords||1))*100).toFixed(1)}% dari data`}
         />
         <SummaryCard 
           title="Rata-rata Ketergantungan Transfer" 
@@ -67,13 +109,13 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* GDP Growth Chart */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold mb-4 text-slate-800">Top 5 Daerah Berdasarkan Pertumbuhan PDRB</h3>
+          <h3 className="text-lg font-semibold mb-4 text-slate-800">Top 5 Pertumbuhan PDRB {selectedYear !== 'all' ? `(${selectedYear})` : ''}</h3>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topRegionsByGDP} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" />
-                <YAxis dataKey="Region" type="category" width={100} />
+                <YAxis dataKey={selectedYear === 'all' ? ((d: any) => `${d.Region} '${d.Year.toString().slice(2)}`) : "Region"} type="category" width={100} />
                 <Tooltip />
                 <Bar dataKey="GDP_Growth" fill="#4f46e5" radius={[0, 4, 4, 0]} name="Pertumbuhan PDRB (%)" />
               </BarChart>
@@ -110,16 +152,18 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
               <tr>
                 <th className="px-6 py-3">Daerah</th>
                 <th className="px-6 py-3">Provinsi</th>
+                <th className="px-6 py-3">Tahun</th>
                 <th className="px-6 py-3">Kapasitas Fiskal</th>
                 <th className="px-6 py-3">Skor Stres</th>
                 <th className="px-6 py-3">Tingkat Risiko</th>
               </tr>
             </thead>
             <tbody>
-              {data.slice(0, 10).map((row, i) => (
+              {filteredData.slice(0, 10).map((row, i) => (
                 <tr key={i} className="bg-white border-b hover:bg-slate-50">
                   <td className="px-6 py-4 font-medium text-slate-900">{row.Region}</td>
                   <td className="px-6 py-4">{row.Province}</td>
+                  <td className="px-6 py-4">{row.Year}</td>
                   <td className="px-6 py-4">{row.Fiscal_Capacity_Index?.toFixed(1) || 'N/A'}</td>
                   <td className="px-6 py-4">{row.Fiscal_Stress_Score?.toFixed(1) || 'N/A'}</td>
                   <td className="px-6 py-4">

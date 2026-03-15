@@ -52,8 +52,8 @@ export default function AIChatbot({ data }: { data: RegionalData[] }) {
 
       const ai = new GoogleGenAI({ apiKey });
       
-      // Prepare context from data
-      const contextData = data.slice(0, 5).map(d => 
+      // Prepare context from data (up to 50 records to avoid token limits while providing good context)
+      const contextData = data.slice(0, 50).map(d => 
         `Daerah: ${d.Region}, Tahun: ${d.Year}, Pertumbuhan PDRB: ${d.GDP_Growth}%, Pendapatan: ${d.Revenue}, PAD: ${d.PAD}, Transfer: ${d.Transfer}, Belanja: ${d.Expenditure}, Keseimbangan Fiskal: ${d.Fiscal_Balance}, Skor Stres: ${d.Fiscal_Stress_Score}, Risiko: ${d.Fiscal_Risk}`
       ).join('\n');
 

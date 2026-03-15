@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { RegionalData, PolicyScenario } from '../types';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -6,7 +6,26 @@ import {
 import { SlidersHorizontal, ArrowRight, TrendingUp, TrendingDown, Lightbulb } from 'lucide-react';
 
 export default function PolicySimulation({ data }: { data: RegionalData[] }) {
-  const [selectedRegion, setSelectedRegion] = useState<string>(data[0]?.Region || '');
+  const uniqueRegions = useMemo(() => Array.from(new Set(data.map(d => d.Region))).sort(), [data]);
+  const [selectedRegion, setSelectedRegion] = useState<string>(uniqueRegions[0] || '');
+
+  const regionDataAllYears = useMemo(() => {
+    return data.filter(d => d.Region === selectedRegion).sort((a, b) => a.Year - b.Year);
+  }, [data, selectedRegion]);
+
+  const availableYears = useMemo(() => {
+    return regionDataAllYears.map(d => d.Year).sort((a, b) => b - a);
+  }, [regionDataAllYears]);
+
+  const [selectedYear, setSelectedYear] = useState<number>(availableYears[0] || new Date().getFullYear());
+
+  // Update selected year if region changes
+  React.useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedYear]);
+
   const [scenario, setScenario] = useState<PolicyScenario>({
     padIncrease: 0,
     capitalExpIncrease: 0,
@@ -25,7 +44,9 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
     );
   }
 
-  const regionData = data.find(d => d.Region === selectedRegion) || data[0];
+  const regionData = regionDataAllYears.find(d => d.Year === selectedYear) || regionDataAllYears[0];
+
+  if (!regionData) return null;
 
   // Simulation Logic
   // Multipliers
@@ -120,20 +141,31 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-slate-800">Simulasi Kebijakan Daerah</h3>
           <p className="text-sm text-slate-500">Sesuaikan instrumen fiskal untuk mensimulasikan dampak terhadap pertumbuhan PDRB dan keseimbangan fiskal.</p>
         </div>
-        <select 
-          className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={selectedRegion}
-          onChange={(e) => setSelectedRegion(e.target.value)}
-        >
-          {data.map(d => (
-            <option key={d.id} value={d.Region}>{d.Region} ({d.Year})</option>
-          ))}
-        </select>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <select 
+            className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value)}
+          >
+            {uniqueRegions.map(region => (
+              <option key={region} value={region}>{region}</option>
+            ))}
+          </select>
+          <select 
+            className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+          >
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

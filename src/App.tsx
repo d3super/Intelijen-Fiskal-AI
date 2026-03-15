@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   BarChart3, 
   Upload, 
@@ -19,13 +19,33 @@ import PolicySimulation from './components/PolicySimulation';
 import { RegionalData } from './types';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
+import { getFromGoogleSheets } from './services/googleSheets';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [regionalData, setRegionalData] = useState<RegionalData[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getFromGoogleSheets();
+        if (data && data.length > 0) {
+          setRegionalData(data);
+        }
+      } catch (error) {
+        console.error("Failed to load data from Google Sheets:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
 
   const handleDataUpload = (newData: RegionalData[]) => {
     setRegionalData(prev => [...prev, ...newData]);
@@ -67,6 +87,15 @@ export default function App() {
   };
 
   const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full space-y-4">
+          <Loader2 size={48} className="animate-spin text-indigo-600" />
+          <p className="text-slate-500 font-medium">Memuat data dari Google Sheets...</p>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard data={regionalData} />;
