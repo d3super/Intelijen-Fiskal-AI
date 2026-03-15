@@ -11,7 +11,12 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
     return Array.from(new Set(data.map(d => d.Year))).sort((a, b) => b - a);
   }, [data]);
 
+  const availableQuarters = useMemo(() => {
+    return Array.from(new Set(data.map(d => d.Quarter).filter(Boolean) as string[])).sort();
+  }, [data]);
+
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(availableYears[0] || 'all');
+  const [selectedQuarter, setSelectedQuarter] = useState<string | 'all'>('all');
 
   // Update selected year if data changes and current selection is invalid
   React.useEffect(() => {
@@ -21,6 +26,13 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
+
+  // Update selected quarter if data changes and current selection is invalid
+  React.useEffect(() => {
+    if (availableQuarters.length > 0 && selectedQuarter !== 'all' && !availableQuarters.includes(selectedQuarter)) {
+      setSelectedQuarter('all');
+    }
+  }, [availableQuarters, selectedQuarter]);
 
   if (data.length === 0) {
     return (
@@ -32,9 +44,11 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
     );
   }
 
-  const filteredData = selectedYear === 'all' 
-    ? data 
-    : data.filter(d => d.Year === selectedYear);
+  const filteredData = data.filter(d => {
+    const matchYear = selectedYear === 'all' || d.Year === selectedYear;
+    const matchQuarter = selectedQuarter === 'all' || d.Quarter === selectedQuarter || (!d.Quarter && selectedQuarter === 'all');
+    return matchYear && matchQuarter;
+  });
 
   // Calculate summary metrics
   // If 'all' is selected, we might want to get unique regions or just average everything.
@@ -62,7 +76,22 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
       <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
         <h2 className="text-lg font-semibold text-slate-800">Ringkasan Eksekutif</h2>
         <div className="flex items-center space-x-2">
-          <Calendar size={18} className="text-slate-500" />
+          {availableQuarters.length > 0 && (
+            <>
+              <span className="text-sm font-medium text-slate-700 ml-4">Triwulan:</span>
+              <select 
+                className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                value={selectedQuarter}
+                onChange={(e) => setSelectedQuarter(e.target.value)}
+              >
+                <option value="all">Semua Triwulan</option>
+                {availableQuarters.map(q => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
+            </>
+          )}
+          <Calendar size={18} className="text-slate-500 ml-4" />
           <span className="text-sm font-medium text-slate-700">Tahun:</span>
           <select 
             className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
@@ -115,7 +144,7 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
               <BarChart data={topRegionsByGDP} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" />
-                <YAxis dataKey={selectedYear === 'all' ? ((d: any) => `${d.Region} '${d.Year.toString().slice(2)}`) : "Region"} type="category" width={100} />
+                <YAxis dataKey={selectedYear === 'all' || selectedQuarter === 'all' ? ((d: any) => `${d.Region} '${d.Year.toString().slice(2)}${d.Quarter ? ' ' + d.Quarter : ''}`) : "Region"} type="category" width={120} />
                 <Tooltip />
                 <Bar dataKey="GDP_Growth" fill="#4f46e5" radius={[0, 4, 4, 0]} name="Pertumbuhan PDRB (%)" />
               </BarChart>
@@ -152,7 +181,7 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
               <tr>
                 <th className="px-6 py-3">Daerah</th>
                 <th className="px-6 py-3">Provinsi</th>
-                <th className="px-6 py-3">Tahun</th>
+                <th className="px-6 py-3">Tahun/Triwulan</th>
                 <th className="px-6 py-3">Kapasitas Fiskal</th>
                 <th className="px-6 py-3">Skor Stres</th>
                 <th className="px-6 py-3">Tingkat Risiko</th>
@@ -163,7 +192,7 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
                 <tr key={i} className="bg-white border-b hover:bg-slate-50">
                   <td className="px-6 py-4 font-medium text-slate-900">{row.Region}</td>
                   <td className="px-6 py-4">{row.Province}</td>
-                  <td className="px-6 py-4">{row.Year}</td>
+                  <td className="px-6 py-4">{row.Year}{row.Quarter ? ` ${row.Quarter}` : ''}</td>
                   <td className="px-6 py-4">{row.Fiscal_Capacity_Index?.toFixed(1) || 'N/A'}</td>
                   <td className="px-6 py-4">{row.Fiscal_Stress_Score?.toFixed(1) || 'N/A'}</td>
                   <td className="px-6 py-4">

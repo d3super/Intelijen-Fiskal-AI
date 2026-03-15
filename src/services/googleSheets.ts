@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { RegionalData } from '../types';
 
 const SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;

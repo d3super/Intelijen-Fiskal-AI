@@ -80,6 +80,7 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
             Region: row.Region || row.region || 'Daerah Tidak Diketahui',
             Province: row.Province || row.province || 'Provinsi Tidak Diketahui',
             Year: parseInt(row.Year || row.year) || new Date().getFullYear(),
+            Quarter: row.Quarter || row.quarter || undefined,
             GDP_Growth: parseFloat(row.GDP_Growth || row.gdp_growth) || 0,
             Revenue: parseFloat(row.Revenue || row.revenue) || 0,
             PAD: parseFloat(row.PAD || row.pad) || 0,
@@ -132,7 +133,7 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
 
   const downloadTemplate = () => {
     const templateData = [{
-      Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023,
+      Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023, Quarter: 'Q1',
       GDP_Growth: 5.2, Revenue: 80000000, PAD: 55000000, Transfer: 20000000,
       Expenditure: 75000000, Capital_Expenditure: 20000000, Personnel_Spending: 25000000,
       Social_Spending: 10000000, Fiscal_Balance: 5000000, Debt: 15000000,
@@ -151,68 +152,76 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
       const sampleData: RegionalData[] = [
         // 2022 Data
         {
-          id: 'sample-1-2022', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2022,
+          id: 'sample-1-2022-q4', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2022, Quarter: 'Q4',
           GDP_Growth: 4.8, Revenue: 75000000, PAD: 50000000, Transfer: 18000000,
           Expenditure: 70000000, Capital_Expenditure: 18000000, Personnel_Spending: 23000000,
           Social_Spending: 9000000, Fiscal_Balance: 5000000, Debt: 14000000,
           Population: 10400000, Unemployment: 8.0
         },
         {
-          id: 'sample-2-2022', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2022,
+          id: 'sample-2-2022-q4', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2022, Quarter: 'Q4',
           GDP_Growth: 5.5, Revenue: 9500000, PAD: 4500000, Transfer: 3800000,
           Expenditure: 9800000, Capital_Expenditure: 2200000, Personnel_Spending: 3800000,
           Social_Spending: 1300000, Fiscal_Balance: -300000, Debt: 1800000,
           Population: 2950000, Unemployment: 6.5
         },
-        // 2023 Data
+        // 2023 Data (Quarterly for Jakarta)
         {
-          id: 'sample-1-2023', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023,
-          GDP_Growth: 5.2, Revenue: 80000000, PAD: 55000000, Transfer: 20000000,
-          Expenditure: 75000000, Capital_Expenditure: 20000000, Personnel_Spending: 25000000,
-          Social_Spending: 10000000, Fiscal_Balance: 5000000, Debt: 15000000,
+          id: 'sample-1-2023-q1', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023, Quarter: 'Q1',
+          GDP_Growth: 5.0, Revenue: 20000000, PAD: 13000000, Transfer: 5000000,
+          Expenditure: 18000000, Capital_Expenditure: 4000000, Personnel_Spending: 6000000,
+          Social_Spending: 2500000, Fiscal_Balance: 2000000, Debt: 15000000,
           Population: 10500000, Unemployment: 7.5
         },
         {
-          id: 'sample-2-2023', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2023,
-          GDP_Growth: 5.8, Revenue: 10000000, PAD: 5000000, Transfer: 4000000,
-          Expenditure: 10500000, Capital_Expenditure: 2500000, Personnel_Spending: 4000000,
-          Social_Spending: 1500000, Fiscal_Balance: -500000, Debt: 2000000,
+          id: 'sample-1-2023-q2', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023, Quarter: 'Q2',
+          GDP_Growth: 5.2, Revenue: 22000000, PAD: 14000000, Transfer: 5000000,
+          Expenditure: 19000000, Capital_Expenditure: 5000000, Personnel_Spending: 6000000,
+          Social_Spending: 2500000, Fiscal_Balance: 3000000, Debt: 14500000,
+          Population: 10500000, Unemployment: 7.3
+        },
+        {
+          id: 'sample-1-2023-q3', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023, Quarter: 'Q3',
+          GDP_Growth: 5.4, Revenue: 21000000, PAD: 13500000, Transfer: 5000000,
+          Expenditure: 20000000, Capital_Expenditure: 6000000, Personnel_Spending: 6000000,
+          Social_Spending: 2500000, Fiscal_Balance: 1000000, Debt: 14000000,
+          Population: 10500000, Unemployment: 7.1
+        },
+        {
+          id: 'sample-1-2023-q4', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023, Quarter: 'Q4',
+          GDP_Growth: 5.5, Revenue: 25000000, PAD: 16000000, Transfer: 5000000,
+          Expenditure: 23000000, Capital_Expenditure: 8000000, Personnel_Spending: 6500000,
+          Social_Spending: 3000000, Fiscal_Balance: 2000000, Debt: 13500000,
+          Population: 10500000, Unemployment: 7.0
+        },
+        // 2023 Data (Quarterly for Surabaya)
+        {
+          id: 'sample-2-2023-q1', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2023, Quarter: 'Q1',
+          GDP_Growth: 5.6, Revenue: 5000000, PAD: 2500000, Transfer: 2000000,
+          Expenditure: 4800000, Capital_Expenditure: 1000000, Personnel_Spending: 2000000,
+          Social_Spending: 700000, Fiscal_Balance: 200000, Debt: 2000000,
           Population: 3000000, Unemployment: 6.2
         },
         {
-          id: 'sample-3-2023', Region: 'Bandung', Province: 'Jawa Barat', Year: 2023,
-          GDP_Growth: 5.0, Revenue: 7000000, PAD: 2500000, Transfer: 4000000,
-          Expenditure: 7200000, Capital_Expenditure: 1500000, Personnel_Spending: 3500000,
-          Social_Spending: 1000000, Fiscal_Balance: -200000, Debt: 1000000,
-          Population: 2500000, Unemployment: 8.1
-        },
-        {
-          id: 'sample-4-2023', Region: 'Medan', Province: 'Sumatera Utara', Year: 2023,
-          GDP_Growth: 4.5, Revenue: 6000000, PAD: 1500000, Transfer: 4200000,
-          Expenditure: 6500000, Capital_Expenditure: 1000000, Personnel_Spending: 3800000,
-          Social_Spending: 800000, Fiscal_Balance: -500000, Debt: 1200000,
-          Population: 2400000, Unemployment: 8.9
-        },
-        {
-          id: 'sample-5-2023', Region: 'Makassar', Province: 'Sulawesi Selatan', Year: 2023,
-          GDP_Growth: 6.1, Revenue: 4500000, PAD: 1200000, Transfer: 3000000,
-          Expenditure: 4400000, Capital_Expenditure: 1200000, Personnel_Spending: 2000000,
-          Social_Spending: 500000, Fiscal_Balance: 100000, Debt: 500000,
-          Population: 1500000, Unemployment: 5.5
+          id: 'sample-2-2023-q2', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2023, Quarter: 'Q2',
+          GDP_Growth: 5.8, Revenue: 5500000, PAD: 2800000, Transfer: 2000000,
+          Expenditure: 5200000, Capital_Expenditure: 1200000, Personnel_Spending: 2000000,
+          Social_Spending: 800000, Fiscal_Balance: 300000, Debt: 1900000,
+          Population: 3000000, Unemployment: 6.0
         },
         // 2024 Data
         {
-          id: 'sample-1-2024', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2024,
-          GDP_Growth: 5.4, Revenue: 85000000, PAD: 60000000, Transfer: 21000000,
-          Expenditure: 80000000, Capital_Expenditure: 22000000, Personnel_Spending: 26000000,
-          Social_Spending: 11000000, Fiscal_Balance: 5000000, Debt: 14500000,
+          id: 'sample-1-2024-q1', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2024, Quarter: 'Q1',
+          GDP_Growth: 5.4, Revenue: 23000000, PAD: 15000000, Transfer: 5500000,
+          Expenditure: 21000000, Capital_Expenditure: 6000000, Personnel_Spending: 6500000,
+          Social_Spending: 2800000, Fiscal_Balance: 2000000, Debt: 13000000,
           Population: 10600000, Unemployment: 7.0
         },
         {
-          id: 'sample-2-2024', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2024,
-          GDP_Growth: 6.0, Revenue: 11000000, PAD: 5800000, Transfer: 4200000,
-          Expenditure: 11200000, Capital_Expenditure: 2800000, Personnel_Spending: 4200000,
-          Social_Spending: 1600000, Fiscal_Balance: -200000, Debt: 2100000,
+          id: 'sample-2-2024-q1', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2024, Quarter: 'Q1',
+          GDP_Growth: 6.0, Revenue: 6000000, PAD: 3000000, Transfer: 2200000,
+          Expenditure: 5800000, Capital_Expenditure: 1500000, Personnel_Spending: 2200000,
+          Social_Spending: 900000, Fiscal_Balance: 200000, Debt: 1800000,
           Population: 3050000, Unemployment: 5.9
         }
       ];
@@ -315,7 +324,7 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
             Pastikan file Excel Anda berisi kolom berikut (tidak peka huruf besar/kecil):
           </p>
           <ul className="text-sm text-slate-500 space-y-1 list-disc list-inside">
-            <li>Region, Province, Year</li>
+            <li>Region, Province, Year, Quarter (opsional)</li>
             <li>GDP_Growth, Population, Unemployment</li>
             <li>Revenue, PAD, Transfer</li>
             <li>Expenditure, Capital_Expenditure</li>

@@ -17,10 +17,16 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
   }, [data, selectedRegion]);
 
   const availableYears = useMemo(() => {
-    return regionDataAllYears.map(d => d.Year).sort((a, b) => b - a);
+    return Array.from(new Set(regionDataAllYears.map(d => d.Year))).sort((a: number, b: number) => b - a);
   }, [regionDataAllYears]);
 
   const [selectedYear, setSelectedYear] = useState<number>(availableYears[0] || new Date().getFullYear());
+
+  const availableQuarters = useMemo(() => {
+    return Array.from(new Set(regionDataAllYears.filter(d => d.Year === selectedYear).map(d => d.Quarter).filter(Boolean) as string[])).sort();
+  }, [regionDataAllYears, selectedYear]);
+
+  const [selectedQuarter, setSelectedQuarter] = useState<string>(availableQuarters[0] || '');
 
   // Update selected year if region changes
   React.useEffect(() => {
@@ -28,6 +34,15 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
       setSelectedYear(availableYears[0]);
     }
   }, [availableYears, selectedYear]);
+
+  // Update selected quarter if year or region changes
+  React.useEffect(() => {
+    if (availableQuarters.length > 0 && !availableQuarters.includes(selectedQuarter)) {
+      setSelectedQuarter(availableQuarters[0]);
+    } else if (availableQuarters.length === 0) {
+      setSelectedQuarter('');
+    }
+  }, [availableQuarters, selectedQuarter]);
 
   if (data.length === 0) {
     return (
@@ -39,7 +54,7 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
     );
   }
 
-  const regionData = regionDataAllYears.find(d => d.Year === selectedYear) || regionDataAllYears[0];
+  const regionData = regionDataAllYears.find(d => d.Year === selectedYear && (d.Quarter === selectedQuarter || (!d.Quarter && !selectedQuarter))) || regionDataAllYears.find(d => d.Year === selectedYear) || regionDataAllYears[0];
 
   if (!regionData) return null;
 
@@ -59,7 +74,7 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
 
   // Trend data
   const trendData = regionDataAllYears.map(d => ({
-    year: d.Year,
+    period: d.Quarter ? `${d.Year} ${d.Quarter}` : `${d.Year}`,
     PAD: d.PAD,
     Transfer: d.Transfer,
     Belanja: d.Expenditure,
@@ -96,6 +111,17 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
           <p className="text-sm text-slate-500">Menganalisis kapasitas fiskal, ketergantungan transfer, dan indikator stres secara spesifik.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
+          {availableQuarters.length > 0 && (
+            <select 
+              className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              value={selectedQuarter}
+              onChange={(e) => setSelectedQuarter(e.target.value)}
+            >
+              {availableQuarters.map(q => (
+                <option key={q} value={q}>{q}</option>
+              ))}
+            </select>
+          )}
           <select 
             className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value={selectedRegion}

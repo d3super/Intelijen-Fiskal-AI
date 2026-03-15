@@ -3,6 +3,7 @@ export interface RegionalData {
   Region: string;
   Province: string;
   Year: number;
+  Quarter?: string;
   GDP_Growth: number;
   Revenue: number;
   PAD: number;

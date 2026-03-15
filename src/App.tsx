@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   BarChart3, 
   Upload, 
@@ -9,43 +9,25 @@ import {
   Download,
   Loader2,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  ShieldAlert
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import DataUpload from './components/DataUpload';
 import AIChatbot from './components/AIChatbot';
 import FiscalAnalysis from './components/FiscalAnalysis';
 import PolicySimulation from './components/PolicySimulation';
+import FiscalRiskMonitor from './components/FiscalRiskMonitor';
 import { RegionalData } from './types';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
-import { getFromGoogleSheets } from './services/googleSheets';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [regionalData, setRegionalData] = useState<RegionalData[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getFromGoogleSheets();
-        if (data && data.length > 0) {
-          setRegionalData(data);
-        }
-      } catch (error) {
-        console.error("Failed to load data from Google Sheets:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadData();
-  }, []);
 
   const handleDataUpload = (newData: RegionalData[]) => {
     setRegionalData(prev => [...prev, ...newData]);
@@ -87,15 +69,6 @@ export default function App() {
   };
 
   const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full space-y-4">
-          <Loader2 size={48} className="animate-spin text-indigo-600" />
-          <p className="text-slate-500 font-medium">Memuat data dari Google Sheets...</p>
-        </div>
-      );
-    }
-
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard data={regionalData} />;
@@ -103,6 +76,8 @@ export default function App() {
         return <DataUpload onUpload={handleDataUpload} />;
       case 'analysis':
         return <FiscalAnalysis data={regionalData} />;
+      case 'risk':
+        return <FiscalRiskMonitor data={regionalData} />;
       case 'simulation':
         return <PolicySimulation data={regionalData} />;
       case 'chatbot':
@@ -117,6 +92,7 @@ export default function App() {
       case 'dashboard': return 'Dasbor';
       case 'upload': return 'Unggah Data';
       case 'analysis': return 'Analisis Fiskal';
+      case 'risk': return 'Monitor Risiko';
       case 'simulation': return 'Simulasi Kebijakan';
       case 'chatbot': return 'Chatbot AI';
       default: return 'Dasbor';
@@ -164,6 +140,13 @@ export default function App() {
             label="Analisis Fiskal" 
             active={activeTab === 'analysis'} 
             onClick={() => setActiveTab('analysis')}
+            isOpen={isSidebarOpen}
+          />
+          <NavItem 
+            icon={<ShieldAlert size={20} />} 
+            label="Monitor Risiko" 
+            active={activeTab === 'risk'} 
+            onClick={() => setActiveTab('risk')}
             isOpen={isSidebarOpen}
           />
           <NavItem 

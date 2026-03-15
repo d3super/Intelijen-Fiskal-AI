@@ -54,7 +54,7 @@ export default function AIChatbot({ data }: { data: RegionalData[] }) {
       
       // Prepare context from data (up to 50 records to avoid token limits while providing good context)
       const contextData = data.slice(0, 50).map(d => 
-        `Daerah: ${d.Region}, Tahun: ${d.Year}, Pertumbuhan PDRB: ${d.GDP_Growth}%, Pendapatan: ${d.Revenue}, PAD: ${d.PAD}, Transfer: ${d.Transfer}, Belanja: ${d.Expenditure}, Keseimbangan Fiskal: ${d.Fiscal_Balance}, Skor Stres: ${d.Fiscal_Stress_Score}, Risiko: ${d.Fiscal_Risk}`
+        `Daerah: ${d.Region}, Tahun: ${d.Year}${d.Quarter ? `, Triwulan: ${d.Quarter}` : ''}, Pertumbuhan PDRB: ${d.GDP_Growth}%, Pendapatan: ${d.Revenue}, PAD: ${d.PAD}, Transfer: ${d.Transfer}, Belanja: ${d.Expenditure}, Keseimbangan Fiskal: ${d.Fiscal_Balance}, Skor Stres: ${d.Fiscal_Stress_Score}, Risiko: ${d.Fiscal_Risk}`
       ).join('\n');
 
       const systemInstruction = `Anda adalah pakar keuangan publik daerah yang mengkhususkan diri pada keberlanjutan fiskal subnasional. 
