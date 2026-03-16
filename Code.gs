@@ -1,5 +1,5 @@
 // Code.gs
-// Google Apps Script Backend for AI Regional Fiscal Intelligence & Stress Prediction System
+// Google Apps Script Backend for Fiscal Radar System
 
 const SHEET_NAME = "FiscalData";
 

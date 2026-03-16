@@ -254,7 +254,7 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
 
       {/* Detailed Analysis Text */}
       <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-        <h3 className="text-xl font-semibold mb-6 text-slate-800">Laporan Analisis Fiskal AI ({selectedYear})</h3>
+        <h3 className="text-xl font-semibold mb-6 text-slate-800">Laporan Fiscal Radar ({selectedYear})</h3>
         
         <div className="space-y-6">
           <AnalysisSection 

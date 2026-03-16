@@ -14,7 +14,7 @@ export default function AIChatbot({ data }: { data: RegionalData[] }) {
     {
       id: '1',
       role: 'assistant',
-      content: 'Halo! Saya adalah Pakar Fiskal Daerah AI Anda. Saya dapat menganalisis kondisi fiskal, kapasitas pendapatan, dan indikator stres dari daerah yang telah Anda unggah. Ada yang bisa saya bantu hari ini?'
+      content: 'Halo! Saya adalah Pakar Fiscal Radar Anda. Saya dapat menganalisis kondisi fiskal, kapasitas pendapatan, dan indikator stres dari daerah yang telah Anda unggah. Ada yang bisa saya bantu hari ini?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -96,7 +96,7 @@ export default function AIChatbot({ data }: { data: RegionalData[] }) {
           <Bot size={24} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-slate-800">Pakar Fiskal Daerah AI</h3>
+          <h3 className="text-lg font-semibold text-slate-800">Pakar Fiscal Radar</h3>
           <p className="text-xs text-slate-500">Diberdayakan oleh Gemini API</p>
         </div>
       </div>
