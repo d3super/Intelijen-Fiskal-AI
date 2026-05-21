@@ -1,17 +1,17 @@
-# PROPOSAL INOVASI DATA STORYTELLING: FISCAL RADAR
+# PROPOSAL INOVASI DATA STORYTELLING: FISCALIA
 **Sandi Kebijakan Masa Depan: Pemodelan Terpadu Dinamika Fiskal & Simulasi Makroekonomi Regional**
 
 ---
 
 ## 1. Identitas Proyek & Abstrak
 
-*   **Nama Aplikasi:** Fiscal Radar
+*   **Nama Aplikasi:** Fiscalia
 *   **Platform Utama:** Dashboard Policy Sandbox & Executive Monitoring System
 *   **Tema Inovasi:** *Subnational Macro-Fiscal Storytelling through Interactive Partial Equilibrium Sandbox*
 *   **Target Audiens Juri / Kompetisi:** Kementerian Keuangan (DJPb), Kementerian PPN/Bappenas, Bappeda Provinsi/Kabupaten/Kota, Akademisi, dan Analis Kebijakan Publik.
 
 ### Abstrak
-Kebijakan fiskal di tingkat subnasional sering kali dirumuskan tanpa visibilitas dampak ekonomi riil jangka pendek dan menengah. Model-model yang ada umumnya bersifat "historis-statistis"—menunjukkan apa yang terjadi tanpa memprediksi sirkulasi dampak sisa (residual impact). **Fiscal Radar** hadir sebagai solusi inovasi *data storytelling* interaktif yang menjembatani kesenjangan tersebut melalui pendekatan **Static Partial Equilibrium Fiscal Multiplier Model** yang telah disesuaikan dengan parameter struktural regional (efisiensi belanja, kebocoran wilayah, ketergantungan transfer, dan kapasitas stres kas). Proposal use case ini menguraikan bagaimana Fiscal Radar merajut angka-angka penganggaran kering menjadi narasi kebijakan yang intuitif, menyelamatkan pengambil keputusan dari "austeritas buta" dan mempercepat pertumbuhan PDRB yang kredibel.
+Kebijakan fiskal di tingkat subnasional sering kali dirumuskan tanpa visibilitas dampak ekonomi riil jangka pendek dan menengah. Model-model yang ada umumnya bersifat "historis-statistis"—menunjukkan apa yang terjadi tanpa memprediksi sirkulasi dampak sisa (residual impact). **Fiscalia** hadir sebagai solusi inovasi *data storytelling* interaktif yang menjembatani kesenjangan tersebut melalui pendekatan **Static Partial Equilibrium Fiscal Multiplier Model** yang telah disesuaikan dengan parameter struktural regional (efisiensi belanja, kebocoran wilayah, ketergantungan transfer, dan kapasitas stres kas). Proposal use case ini menguraikan bagaimana Fiscalia merajut angka-angka penganggaran kering menjadi narasi kebijakan yang intuitif, menyelamatkan pengambil keputusan dari "austeritas buta" dan mempercepat pertumbuhan PDRB yang kredibel.
 
 ---
 
@@ -28,9 +28,9 @@ Peringatan defisit anggaran atau potensi sanksi kas sering kali baru disadari se
 
 ---
 
-## 3. Komponen Inovasi Solusi: "Fiscal Radar"
+## 3. Komponen Inovasi Solusi: "Fiscalia"
 
-Fiscal Radar mengemas rumitnya rumus-rumus ekonometrika makro ke dalam antarmuka interaktif yang dipisahkan menjadi 3 komponen besar visual storytelling:
+Fiscalia mengemas rumitnya rumus-rumus ekonometrika makro ke dalam antarmuka interaktif yang dipisahkan menjadi 3 komponen besar visual storytelling:
 
 ```
   [ INPUT DATA FISKAL ] ---> [ MODEL ENGINES (IMF/OECD Multipliers) ] ---> [ LIVE VISUAL STORYTELLING ]
@@ -52,15 +52,15 @@ Mari bedah skenario storytelling interaktif yang dipresentasikan selama kompetis
 
 ### Skenario 1: Jebakan Austeritas Daerah (The Austerity Trap)
 *   **Latar Belakang Narasi:** Kabupaten Jayakarta tertatih-tatih di kurva pemulihan ekonomi dengan pertumbuhan baseline rendah sebesar **4.5%**. Daerah ini memiliki tingkat ketergantungan transfer pusat yang amat tinggi (**70%**). Bappeda mengusulkan pengetatan moneter internal: menaikkan rasio PAD sebesar **20%** secara drastis melalui simplifikasi tarif retribusi tanpa menambah alokasi Belanja Modal (Infrastruktur).
-*   **Interaksi Storytelling pada Fiscal Radar:**
+*   **Interaksi Storytelling pada Fiscalia:**
     1.  User memilih daerah "Jayakarta" dan menggeser slider **PAD Increase ke +20%**, dan menggeser **Capital Expenditure Increase ke 0%**.
     2.  **Efek Visual Seketika:** Warna panel Growth meluncur turun dari hijau stabil menuju merah menyala di angka **1.1%** pertumbuhan ekonomi.
     3.  Sistem secara dinamis mendeteksi kondisi ini dan meluncurkan alert bertajuk: **"Austeritas Fiskal Berbahaya"** di layar diagnostik.
-    4.  *The Data Story:* Fiscal Radar menceritakan kepada Kepala Dinas bahwa penarikan pajak berlebihan di tengah ketiadaan suntikan belanja infrastruktur menyedot likuiditas dari kantong rumah tangga mikro, mematikan roda ekonomi lokal dalam waktu singkat.
+    4.  *The Data Story:* Fiscalia menceritakan kepada Kepala Dinas bahwa penarikan pajak berlebihan di tengah ketiadaan suntikan belanja infrastruktur menyedot likuiditas dari kantong rumah tangga mikro, mematikan roda ekonomi lokal dalam waktu singkat.
 
 ### Skenario 2: Alokasi Pro-Growth Seimbang (The Balanced Accelerator)
 *   **Latar Belakang Narasi:** Provinsi Surabaya Barat ingin mendorong percepatan PDRB melompat di atas tingkat pertumbuhan saat ini. Mereka memiliki cadangan efisiensi belanja menengah (**65%**). Ada perdebatan antara memotong anggaran pegawai yang tidak produktif untuk dipindahkan ke belanja modal vs bantuan sosial.
-*   **Interaksi Storytelling pada Fiscal Radar:**
+*   **Interaksi Storytelling pada Fiscalia:**
     1.  User mengaktifkan Preset **"Pro-Infrastruktur / Pro-Growth"**.
     2.  Sistem otomatis memposisikan penambahan Belanja Modal **+25%**, melakukan perampingan Belanja Pegawai **-10%**, dan memberikan stimulus minor Bantuan Sosial **+5%**.
     3.  **Efek Transmisi Model:** Meskipun pemotongan belanja pegawai menahan konsumsi bruto aparatur sipil secara sementara (kontraksi minor **-0.05%**), suntikan masif ke infrastruktur dengan multiplier tinggi (**1.4x**) berhasil melontarkan total pertumbuhan PDRB Jayakarta naik hingga **+1.25%** net positif.
@@ -70,7 +70,7 @@ Mari bedah skenario storytelling interaktif yang dipresentasikan selama kompetis
 
 ## 5. Nilai Tambah Teknis & Ekonometrika Model (Methodology Backbone)
 
-Untuk memenangkan kompetisi inovasi, model matematika di balik storytelling harus teruji secara akademis dan empiris. Fiscal Radar menerapkan **Static Partial Equilibrium Fiscal Multiplier Model** dengan detail berikut:
+Untuk memenangkan kompetisi inovasi, model matematika di balik storytelling harus teruji secara akademis dan empiris. Fiscalia menerapkan **Static Partial Equilibrium Fiscal Multiplier Model** dengan detail berikut:
 
 ### Rumus Perhitungan Guncangan Pertumbuhan (GDP Shock Impact)
 $$\text{GDP Impact}_c = \left( \frac{\Delta \text{Fiscal Shock}_c}{\text{PDRB Regional}} \times 100 \right) \times \text{Multiplier}_c \times \text{Lag}_c \times \text{Efficiency} \times (1 - \text{Leakage}) \times \text{Stress Penalty}$$
@@ -92,14 +92,14 @@ $$\text{GDP Impact}_c = \left( \frac{\Delta \text{Fiscal Shock}_c}{\text{PDRB Re
 ## 6. Skenario Diagnostik & Indikator Risiko Otomatis
 
 Aplikasi ini menyajikan visual storytelling melalui indikator risiko real-time:
-*   **Defisit Anggaran terhadap PDRB:** Undang-Undang membatasi defisit daerah. Fiscal Radar secara dinamis mendeteksi hal ini. Jika simulasi proyeksi defisit melampaui **5.0%**, model secara otomatis mengaktifkan penalti multiplier makro karena adanya ketidakpastian iklim investasi lokal.
+*   **Defisit Anggaran terhadap PDRB:** Undang-Undang membatasi defisit daerah. Fiscalia secara dinamis mendeteksi hal ini. Jika simulasi proyeksi defisit melampaui **5.0%**, model secara otomatis mengaktifkan penalti multiplier makro karena adanya ketidakpastian iklim investasi lokal.
 *   **Indeks Penyeimbang Kebijakan (Priority Advisor recommendations):** Menggunakan basis prioritas pintar (*smart priority framework*) untuk menghasilkan arahan kebijakan spesifik yang dapat langsung dipresentasikan pengguna kepala daerah dalam sidang anggaran daerah.
 
 ---
 
 ## 7. Keunggulan Desain untuk Kompetisi (Storytelling Advantage)
 
-Dalam kompetisi *Data Storytelling*, aspek penyajian visual dinamis adalah faktor utama kemenangan. Fiscal Radar dirancang khusus dengan fitur storytelling berikut:
+Dalam kompetisi *Data Storytelling*, aspek penyajian visual dinamis adalah faktor utama kemenangan. Fiscalia dirancang khusus dengan fitur storytelling berikut:
 
 1.  **Immersive Presets Buttons:** Satu klik mengubah seluruh narasi. Juri kompetisi dapat langsung beralih dari skenario krisis (*austeritas ekstrim*) ke skenario optimis (*Balanced Accelerator*) tanpa perlu memikirkan parameter di belakang layar.
 2.  **Immediate Micro-Metrics Breakdown (Impact Badges):** Menampilkan perombakan persentase pertumbuhan spesifik untuk masing-masing instrumen belanja secara komparatif. Juri dapat langsung memahami pemicu utama kenaikan atau penurunan PDRB.
@@ -107,4 +107,4 @@ Dalam kompetisi *Data Storytelling*, aspek penyajian visual dinamis adalah fakto
 
 ---
 
-*Fiscal Radar merupakan inovasi yang meyakinkan bahwa data fiskal daerah tidak harus dingin dan membosankan. Melalui perpaduan matematika IMF yang solid dan kemudahan interaksi sandbox, Fiscal Radar adalah jembatan emas bagi masa depan data storytelling kebijakan fiskal subnasional di Indonesia.*
+*Fiscalia merupakan inovasi yang meyakinkan bahwa data fiskal daerah tidak harus dingin dan membosankan. Melalui perpaduan matematika IMF yang solid dan kemudahan interaksi sandbox, Fiscalia adalah jembatan emas bagi masa depan data storytelling kebijakan fiskal subnasional di Indonesia.*

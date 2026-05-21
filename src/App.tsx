@@ -126,9 +126,9 @@ export default function App() {
           {isSidebarOpen && (
             <div>
               <h1 className="text-lg font-bold tracking-tight leading-tight">
-                Fiscal Radar
+                Fiscalia
               </h1>
-              <p className="text-[10px] text-slate-400 mt-1">Sistem Prediksi Fiskal Regional</p>
+              <p className="text-[10px] text-slate-400 mt-1">Fiscal Intelligence and Analytics</p>
             </div>
           )}
           <button 

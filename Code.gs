@@ -1,5 +1,5 @@
 // Code.gs
-// Google Apps Script Backend for Fiscal Radar System
+// Google Apps Script Backend for Fiscalia System
 
 const SHEET_NAME = "FiscalData";
 
