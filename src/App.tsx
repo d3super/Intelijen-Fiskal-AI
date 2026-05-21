@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   BarChart3, 
   Upload, 
-  MessageSquare, 
   Activity, 
   SlidersHorizontal,
   FileText,
@@ -13,7 +12,6 @@ import {
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import DataUpload from './components/DataUpload';
-import AIChatbot from './components/AIChatbot';
 import FiscalAnalysis from './components/FiscalAnalysis';
 import PolicySimulation from './components/PolicySimulation';
 import { RegionalData } from './types';
@@ -105,8 +103,6 @@ export default function App() {
         return <FiscalAnalysis data={regionalData} />;
       case 'simulation':
         return <PolicySimulation data={regionalData} />;
-      case 'chatbot':
-        return <AIChatbot data={regionalData} />;
       default:
         return <Dashboard data={regionalData} />;
     }
@@ -118,7 +114,6 @@ export default function App() {
       case 'upload': return 'Unggah Data';
       case 'analysis': return 'Analisis Fiskal';
       case 'simulation': return 'Simulasi Kebijakan';
-      case 'chatbot': return 'Chatbot AI';
       default: return 'Dasbor';
     }
   };
@@ -171,13 +166,6 @@ export default function App() {
             label="Simulasi Kebijakan" 
             active={activeTab === 'simulation'} 
             onClick={() => setActiveTab('simulation')}
-            isOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<MessageSquare size={20} />} 
-            label="Chatbot AI" 
-            active={activeTab === 'chatbot'} 
-            onClick={() => setActiveTab('chatbot')}
             isOpen={isSidebarOpen}
           />
         </nav>
