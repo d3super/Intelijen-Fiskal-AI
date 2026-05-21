@@ -3,6 +3,10 @@
 
 const SHEET_NAME = "FiscalData";
 
+// JIKA ANDA MENGGUNAKAN STANDALONE SCRIPT (BUKAN CONTAINER-BOUND SCRIPT),
+// MASUKKAN ID SPREADSHEET GOOGLE SHEET ANDA DI BAWAH INI (Contoh: "1xxxxxxxxxxxxxxxxxx"):
+const SPREADSHEET_ID = ""; 
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -76,7 +80,27 @@ function getFromSheet() {
 }
 
 function getOrCreateSheet(sheetName) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let ss = null;
+  
+  if (SPREADSHEET_ID && SPREADSHEET_ID !== "") {
+    try {
+      ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    } catch (err) {
+      throw new Error("Gagal membuka Google Sheet menggunakan SPREADSHEET_ID yang diberikan. Pastikan ID benar dan Anda memiliki akses: " + err.toString());
+    }
+  } else {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+  }
+  
+  if (!ss) {
+    throw new Error(
+      "Gagal mendeteksi Google Sheet! " +
+      "HAL INI TERJADI KARENA: Anda membuat Apps Script sebagai 'Standalone Script' mandiri di script.google.com. " +
+      "SOLUSI: (1) Buka Google Sheet target Anda, pilih menu 'Extensions' atau 'Ekstensi' > 'Apps Script', lalu tempelkan kode ini di sana; ATAU " +
+      "(2) Salin ID Spreadsheet Anda (dari URL spreadsheet), lalu tempelkan di variabel SPREADSHEET_ID di baris ke-8 script Code.gs ini."
+    );
+  }
+  
   let sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
     sheet = ss.insertSheet(sheetName);
