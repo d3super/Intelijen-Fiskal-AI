@@ -201,6 +201,10 @@ export default function App() {
         <main className="flex-1 overflow-auto p-8" ref={contentRef}>
           {renderContent()}
         </main>
+        
+        <footer className="bg-white border-t border-slate-200 py-3 px-8 text-center text-xs text-slate-400 font-medium">
+          2026@Kantor Wilayah DJPb Provinsi Lampung
+        </footer>
       </div>
     </div>
   );
