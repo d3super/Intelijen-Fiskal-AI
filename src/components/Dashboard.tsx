@@ -17,6 +17,20 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
 
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(availableYears[0] || 'all');
   const [selectedQuarter, setSelectedQuarter] = useState<string | 'all'>('all');
+  const [selectedProvince, setSelectedProvince] = useState<string | 'all'>('all');
+  const [selectedRegion, setSelectedRegion] = useState<string | 'all'>('all');
+  const [viewMode, setViewMode] = useState<'single' | 'trend'>('single');
+
+  const availableProvinces = useMemo(() => {
+    return Array.from(new Set(data.map(d => d.Province).filter(Boolean) as string[])).sort();
+  }, [data]);
+
+  const availableRegions = useMemo(() => {
+    const filteredSource = selectedProvince === 'all' 
+      ? data 
+      : data.filter(d => d.Province === selectedProvince);
+    return Array.from(new Set(filteredSource.map(d => d.Region).filter(Boolean) as string[])).sort();
+  }, [data, selectedProvince]);
 
   // Update selected year if data changes and current selection is invalid
   React.useEffect(() => {
@@ -34,6 +48,16 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
     }
   }, [availableQuarters, selectedQuarter]);
 
+  // Reset selected region if no longer valid under selected province
+  React.useEffect(() => {
+    if (selectedRegion !== 'all') {
+      const isValid = data.some(d => d.Region === selectedRegion && (selectedProvince === 'all' || d.Province === selectedProvince));
+      if (!isValid) {
+        setSelectedRegion('all');
+      }
+    }
+  }, [selectedProvince, selectedRegion, data]);
+
   if (data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
@@ -47,7 +71,9 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
   const filteredData = data.filter(d => {
     const matchYear = selectedYear === 'all' || d.Year === selectedYear;
     const matchQuarter = selectedQuarter === 'all' || d.Quarter === selectedQuarter || (!d.Quarter && selectedQuarter === 'all');
-    return matchYear && matchQuarter;
+    const matchProvince = selectedProvince === 'all' || d.Province === selectedProvince;
+    const matchRegion = selectedRegion === 'all' || d.Region === selectedRegion;
+    return matchYear && matchQuarter && matchProvince && matchRegion;
   });
 
   // Calculate summary metrics
@@ -70,17 +96,91 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
     stress: d.Fiscal_Stress_Score || 0
   }));
 
+  const trendData = useMemo(() => {
+    const points = data.map(d => ({
+      year: d.Year,
+      quarter: d.Quarter || '',
+      label: d.Quarter ? `${d.Year} ${d.Quarter}` : `${d.Year}`,
+      key: d.Quarter ? `${d.Year}-${d.Quarter}` : `${d.Year}`
+    }));
+
+    const uniqueKeys: string[] = [];
+    const uniquePoints: typeof points = [];
+    points.forEach(p => {
+      if (!uniqueKeys.includes(p.key)) {
+        uniqueKeys.push(p.key);
+        uniquePoints.push(p);
+      }
+    });
+
+    uniquePoints.sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return a.quarter.localeCompare(b.quarter);
+    });
+
+    return uniquePoints.map(pt => {
+      const ptData = data.filter(d => d.Year === pt.year && (!pt.quarter || d.Quarter === pt.quarter));
+      const count = ptData.length || 1;
+      const avgGdp = ptData.reduce((acc, curr) => acc + (curr.GDP_Growth || 0), 0) / count;
+      const avgDep = ptData.reduce((acc, curr) => acc + (curr.Transfer_Dependency || 0), 0) / count;
+      const avgCap = ptData.reduce((acc, curr) => acc + (curr.Fiscal_Capacity_Index || 0), 0) / count;
+      return {
+        label: pt.label,
+        avgGdpGrowth: Number(avgGdp.toFixed(2)),
+        avgDependency: Number(avgDep.toFixed(2)),
+        avgCapacity: Number(avgCap.toFixed(2)),
+      };
+    });
+  }, [data]);
+
   return (
     <div className="space-y-6">
       {/* Header with Filter */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-800">Ringkasan Eksekutif</h2>
-        <div className="flex items-center space-x-2">
-          {availableQuarters.length > 0 && (
-            <>
-              <span className="text-sm font-medium text-slate-700 ml-4">Triwulan:</span>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center bg-white p-5 rounded-xl shadow-sm border border-slate-200 gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-slate-800">Ringkasan Eksekutif</h2>
+          <p className="text-xs text-slate-400 mt-0.5">Pantau ringkasan kapasitas dan risiko fiskal daerah.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Provinsi filter */}
+          {availableProvinces.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-semibold text-slate-600">Provinsi:</span>
               <select 
-                className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium"
+                value={selectedProvince}
+                onChange={(e) => setSelectedProvince(e.target.value)}
+              >
+                <option value="all">Semua Provinsi</option>
+                {availableProvinces.map(prov => (
+                  <option key={prov} value={prov}>{prov}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Daerah/Kabupaten filter */}
+          {availableRegions.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-semibold text-slate-600">Daerah:</span>
+              <select 
+                className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium"
+                value={selectedRegion}
+                onChange={(e) => setSelectedRegion(e.target.value)}
+              >
+                <option value="all">Semua Daerah</option>
+                {availableRegions.map(reg => (
+                  <option key={reg} value={reg}>{reg}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {availableQuarters.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-semibold text-slate-600">Triwulan:</span>
+              <select 
+                className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium"
                 value={selectedQuarter}
                 onChange={(e) => setSelectedQuarter(e.target.value)}
               >
@@ -89,20 +189,23 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
                   <option key={q} value={q}>{q}</option>
                 ))}
               </select>
-            </>
+            </div>
           )}
-          <Calendar size={18} className="text-slate-500 ml-4" />
-          <span className="text-sm font-medium text-slate-700">Tahun:</span>
-          <select 
-            className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-          >
-            <option value="all">Semua Tahun</option>
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
+
+          <div className="flex items-center space-x-2">
+            <Calendar size={14} className="text-slate-400" />
+            <span className="text-xs font-semibold text-slate-600">Tahun:</span>
+            <select 
+              className="px-3 py-1.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-medium"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            >
+              <option value="all">Semua Tahun</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -134,40 +237,111 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
         />
       </div>
 
+      {/* Charts Header with Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-white p-5 rounded-xl shadow-sm border border-slate-200 gap-3">
+        <div>
+          <h3 className="text-base font-bold text-slate-800">Visualisasi & Sandbox Fiskal</h3>
+          <p className="text-xs text-slate-400">Analisis sebaran daerah secara parsial atau pelajari perkembangan historis multi-tahun.</p>
+        </div>
+        <div className="flex items-center bg-slate-100 p-1 rounded-lg self-start sm:self-center border border-slate-200">
+          <button
+            onClick={() => setViewMode('single')}
+            className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'single'
+                ? 'bg-white text-indigo-600 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Single Year
+          </button>
+          <button
+            onClick={() => setViewMode('trend')}
+            className={`px-4 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'trend'
+                ? 'bg-white text-indigo-600 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Multi-Year Trend
+          </button>
+        </div>
+      </div>
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* GDP Growth Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold mb-4 text-slate-800">Top 5 Pertumbuhan PDRB {selectedYear !== 'all' ? `(${selectedYear})` : ''}</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topRegionsByGDP} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" />
-                <YAxis dataKey={selectedYear === 'all' || selectedQuarter === 'all' ? ((d: any) => `${d.Region} '${d.Year.toString().slice(2)}${d.Quarter ? ' ' + d.Quarter : ''}`) : "Region"} type="category" width={120} />
-                <Tooltip />
-                <Bar dataKey="GDP_Growth" fill="#4f46e5" radius={[0, 4, 4, 0]} name="Pertumbuhan PDRB (%)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        {viewMode === 'single' ? (
+          <>
+            {/* GDP Growth Chart */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <h3 className="text-lg font-semibold mb-4 text-slate-800">Top 5 Pertumbuhan PDRB {selectedYear !== 'all' ? `(${selectedYear})` : ''}</h3>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topRegionsByGDP} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                    <XAxis type="number" />
+                    <YAxis dataKey={selectedYear === 'all' || selectedQuarter === 'all' ? ((d: any) => `${d.Region} '${d.Year.toString().slice(2)}${d.Quarter ? ' ' + d.Quarter : ''}`) : "Region"} type="category" width={120} />
+                    <Tooltip />
+                    <Bar dataKey="GDP_Growth" fill="#4f46e5" radius={[0, 4, 4, 0]} name="Pertumbuhan PDRB (%)" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
-        {/* Transfer Dependency vs Fiscal Capacity */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h3 className="text-lg font-semibold mb-4 text-slate-800">Ketergantungan Transfer vs Kapasitas Fiskal</h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" dataKey="dependency" name="Ketergantungan Transfer" unit="%" />
-                <YAxis type="number" dataKey="capacity" name="Kapasitas Fiskal" />
-                <ZAxis type="number" dataKey="stress" range={[50, 400]} name="Skor Stres" />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                <Scatter name="Daerah" data={dependencyVsCapacity} fill="#f43f5e" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+            {/* Transfer Dependency vs Fiscal Capacity */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <h3 className="text-lg font-semibold mb-4 text-slate-800">Ketergantungan Transfer vs Kapasitas Fiskal</h3>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" dataKey="dependency" name="Ketergantungan Transfer" unit="%" />
+                    <YAxis type="number" dataKey="capacity" name="Kapasitas Fiskal" />
+                    <ZAxis type="number" dataKey="stress" range={[50, 400]} name="Skor Stres" />
+                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                    <Scatter name="Daerah" data={dependencyVsCapacity} fill="#f43f5e" />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* GDP Growth Multi-Year Trend Chart */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <h3 className="text-lg font-semibold mb-4 text-slate-800">Tren Pertumbuhan PDRB Multi-Tahun (Rata-rata Subnasional)</h3>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
+                    <YAxis stroke="#64748b" fontSize={11} unit="%" />
+                    <Tooltip formatter={(value: number) => [`${value}%`, "Rata-rata Pertumbuhan"]} />
+                    <Legend />
+                    <Line type="monotone" dataKey="avgGdpGrowth" stroke="#4f46e5" strokeWidth={3} activeDot={{ r: 8 }} name="Pertumbuhan PDRB Rata-rata" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Transfer Dependency vs Fiscal Capacity Multi-Year Trend Chart */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <h3 className="text-lg font-semibold mb-4 text-slate-800">Tren Makro-Fiskal: Ketergantungan vs Kapasitas Fiskal</h3>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
+                    <YAxis stroke="#64748b" fontSize={11} />
+                    <Tooltip formatter={(value: number, name: string) => [name === "avgDependency" ? `${value}%` : value, name === "avgDependency" ? "Ketergantungan Transfer" : "Kapasitas Fiskal"]} />
+                    <Legend />
+                    <Line type="monotone" dataKey="avgDependency" stroke="#eab308" strokeWidth={2.5} name="Ketergantungan Transfer (%)" />
+                    <Line type="monotone" dataKey="avgCapacity" stroke="#10b981" strokeWidth={2.5} name="Skor Kapasitas Fiskal" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Data Table */}
