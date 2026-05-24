@@ -8,7 +8,10 @@ import {
   Download,
   Loader2,
   Menu,
-  ChevronLeft
+  ChevronLeft,
+  Database,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import DataUpload from './components/DataUpload';
@@ -17,70 +20,95 @@ import PolicySimulation from './components/PolicySimulation';
 import { RegionalData } from './types';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
-import { getFromGoogleSheets } from './services/googleSheets';
+import { getFromGoogleSheets, saveToGoogleSheetsBulk } from './services/googleSheets';
+import { initAuth, googleSignIn, logout, getAccessToken } from './utils/auth';
+import { User } from 'firebase/auth';
+
+import ExportReportModal from './components/ExportReportModal';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [regionalData, setRegionalData] = useState<RegionalData[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  
+  // Auth & Sync state
   const [isLoading, setIsLoading] = useState(true);
+  const [needsAuth, setNeedsAuth] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<'idle'|'success'|'error'>('idle');
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getFromGoogleSheets();
+    setIsLoading(true);
+    const unsubscribe = initAuth(
+      async (user, token) => {
+        setUser(user);
+        setNeedsAuth(false);
+        try {
+          const data = await getFromGoogleSheets(token);
+          if (data && data.length > 0) {
+            setRegionalData(data);
+          }
+        } catch (error) {
+          console.error("Failed to load data from Google Sheets:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      () => {
+        setNeedsAuth(true);
+        setUser(null);
+        setIsLoading(false);
+      }
+    );
+    
+    return () => unsubscribe();
+  }, []);
+
+  const handleDataUpload = async (newData: RegionalData[]) => {
+    const updatedData = [...regionalData, ...newData];
+    setRegionalData(updatedData);
+    
+    if (user) {
+      await performSync(updatedData);
+    }
+  };
+
+  const performSync = async (dataToSync: RegionalData[]) => {
+    setIsSyncing(true);
+    setSyncStatus('idle');
+    try {
+      const success = await saveToGoogleSheetsBulk(dataToSync);
+      if (success) {
+        setSyncStatus('success');
+      } else {
+        setSyncStatus('error');
+      }
+    } catch (error) {
+      console.error('Error syncing:', error);
+      setSyncStatus('error');
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const result = await googleSignIn();
+      if (result) {
+        setUser(result.user);
+        setNeedsAuth(false);
+        const data = await getFromGoogleSheets(result.accessToken);
         if (data && data.length > 0) {
           setRegionalData(data);
         }
-      } catch (error) {
-        console.error("Failed to load data from Google Sheets:", error);
-      } finally {
-        setIsLoading(false);
       }
-    };
-    
-    loadData();
-  }, []);
-
-  const handleDataUpload = (newData: RegionalData[]) => {
-    setRegionalData(prev => [...prev, ...newData]);
-  };
-
-  const handleExportPDF = async () => {
-    if (!contentRef.current || regionalData.length === 0) return;
-    
-    setIsExporting(true);
-    try {
-      const dataUrl = await htmlToImage.toPng(contentRef.current, {
-        quality: 1,
-        pixelRatio: 2,
-        style: {
-          backgroundColor: '#f8fafc' // slate-50
-        }
-      });
-      
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      
-      // We need to get the image dimensions to calculate the height properly
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-      
-      const pdfHeight = (img.height * pdfWidth) / img.width;
-      
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Laporan_Fiskal_Daerah_${new Date().toISOString().split('T')[0]}.pdf`);
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      alert('Gagal mengekspor PDF. Silakan coba lagi.');
-    } finally {
-      setIsExporting(false);
+    } catch (err) {
+      console.error('Login failed:', err);
     }
   };
 
@@ -172,13 +200,13 @@ export default function App() {
         
         <div className="p-3 border-t border-slate-800">
           <button 
-            onClick={handleExportPDF}
-            disabled={isExporting || regionalData.length === 0}
+            onClick={() => setIsExportModalOpen(true)}
+            disabled={regionalData.length === 0}
             className={`flex items-center text-sm text-slate-400 hover:text-white transition-colors w-full p-2 rounded-md hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed ${isSidebarOpen ? 'space-x-2' : 'justify-center'}`}
             title="Ekspor Laporan (PDF)"
           >
-            {isExporting ? <Loader2 size={20} className="animate-spin flex-shrink-0" /> : <Download size={20} className="flex-shrink-0" />}
-            {isSidebarOpen && <span>{isExporting ? 'Mengekspor...' : 'Ekspor Laporan'}</span>}
+            <Download size={20} className="flex-shrink-0" />
+            {isSidebarOpen && <span>Ekspor Laporan</span>}
           </button>
         </div>
       </div>
@@ -192,7 +220,41 @@ export default function App() {
             </h2>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+            
+            {/* Sync Status / Action */}
+            {user ? (
+              <div className="flex items-center space-x-3 text-sm">
+                <span className="text-slate-600 flex items-center space-x-1 border border-slate-200 bg-slate-50 px-3 py-1.5 rounded-lg">
+                  <Database size={14} className="text-indigo-600 mr-1" /> Google Sheets Sync
+                  {isSyncing && <Loader2 size={12} className="ml-2 animate-spin text-indigo-500" />}
+                  {!isSyncing && syncStatus === 'success' && <CheckCircle2 size={12} className="ml-2 text-emerald-500" />}
+                  {!isSyncing && syncStatus === 'error' && <AlertCircle size={12} className="ml-2 text-rose-500" />}
+                </span>
+                <button 
+                  onClick={() => performSync(regionalData)}
+                  disabled={isSyncing || regionalData.length === 0}
+                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium px-3 py-1.5 rounded-lg transition-colors border border-indigo-100"
+                >
+                  Sinkronkan
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={handleLogin}
+                className="gsi-material-button bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium px-4 py-1.5 rounded-lg flex items-center space-x-2 transition-colors cursor-pointer"
+              >
+                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5 mr-1" xmlnsXlink="http://www.w3.org/1999/xlink">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                  <path fill="none" d="M0 0h48v48H0z"></path>
+                 </svg>
+                 <span>Hubungkan Google Sheets</span>
+              </button>
+            )}
+
+            <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
               {regionalData.length} Daerah Dimuat
             </span>
           </div>
@@ -206,6 +268,13 @@ export default function App() {
           2026@Kantor Wilayah DJPb Provinsi Lampung
         </footer>
       </div>
+
+      {isExportModalOpen && (
+        <ExportReportModal 
+          data={regionalData} 
+          onClose={() => setIsExportModalOpen(false)} 
+        />
+      )}
     </div>
   );
 }

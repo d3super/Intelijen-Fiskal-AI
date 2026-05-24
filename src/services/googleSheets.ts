@@ -1,80 +1,108 @@
 /// <reference types="vite/client" />
 import { RegionalData } from '../types';
 
-const SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL;
+import { RegionalData } from '../types';
+import { getAccessToken } from '../utils/auth';
 
-export const saveToGoogleSheets = async (data: RegionalData): Promise<boolean> => {
-  if (!SCRIPT_URL) {
-    console.warn('VITE_GOOGLE_APPS_SCRIPT_URL is not set. Data will not be saved to Google Sheets.');
-    return false;
-  }
+const SPREADSHEET_ID_KEY = 'fiscalia_spreadsheet_id';
+
+export const saveToGoogleSheetsBulk = async (data: RegionalData[]): Promise<boolean> => {
+  const token = await getAccessToken();
+  if (!token) return false;
 
   try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'saveData',
-        payload: data
-      }),
+    let spreadsheetId = localStorage.getItem(SPREADSHEET_ID_KEY);
+    
+    if (!spreadsheetId) {
+      // Create a new spreadsheet
+      const createRes = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          properties: {
+            title: `Database Fiskal Daerah - ${new Date().toLocaleDateString('id-ID')}`,
+          },
+        }),
+      });
+
+      if (!createRes.ok) throw new Error('Failed to create spreadsheet');
+      const spreadsheet = await createRes.json();
+      spreadsheetId = spreadsheet.spreadsheetId;
+      localStorage.setItem(SPREADSHEET_ID_KEY, spreadsheetId as string);
+    }
+
+    if (data.length === 0) return true;
+    
+    // Convert to values array
+    const columns = Object.keys(data[0]);
+    const values = [
+      columns,
+      ...data.map(row => columns.map(col => String((row as any)[col] || '')))
+    ];
+
+    // Read existing data to see if we need to append or replace
+    // Actually, appending is safer for "menyimpan data secara permanen"
+    
+    // We will just append
+    const appendValues = data.map(row => columns.map(col => String((row as any)[col] || '')));
+
+    // But wait, what if the header isn't there? We should probably just clear and replace all data, or append.
+    // If we're updating the whole dataset from React state, let's just clear and overwrite to ensure sync.
+    const updateRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z${values.length}?valueInputOption=USER_ENTERED`, {
+      method: 'PUT',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
-      }
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        range: `Sheet1!A1:Z${values.length}`,
+        majorDimension: 'ROWS',
+        values: values,
+      }),
     });
 
-    const result = await response.json();
-    return result.status === 'success';
+    if (!updateRes.ok) throw new Error('Failed to update spreadsheet data');
+    
+    return true;
   } catch (error) {
     console.error('Error saving to Google Sheets:', error);
     return false;
   }
 };
 
-export const getFromGoogleSheets = async (): Promise<RegionalData[]> => {
-  if (!SCRIPT_URL) {
-    console.warn('VITE_GOOGLE_APPS_SCRIPT_URL is not set. Cannot fetch data from Google Sheets.');
-    return [];
-  }
+export const getFromGoogleSheets = async (token?: string): Promise<RegionalData[]> => {
+  const accessToken = token || await getAccessToken();
+  if (!accessToken) return [];
+
+  const spreadsheetId = localStorage.getItem(SPREADSHEET_ID_KEY);
+  if (!spreadsheetId) return [];
 
   try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'getData'
-      }),
+    const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Sheet1!A1:Z`, {
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
+        Authorization: `Bearer ${accessToken}`,
       }
     });
 
+    if (!response.ok) return [];
+
     const result = await response.json();
-    if (result.status === 'success' && result.data) {
-      // Map the returned data back to RegionalData format
-      return result.data.map((row: any) => ({
-        id: `sheet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        Region: row.Region || '',
-        Province: row.Province || '',
-        Year: parseInt(row.Year) || new Date().getFullYear(),
-        GDP_Growth: parseFloat(row['GDP Growth']) || 0,
-        Revenue: parseFloat(row.Revenue) || 0,
-        PAD: parseFloat(row.PAD) || 0,
-        Transfer: parseFloat(row['Transfer Revenue']) || 0,
-        Expenditure: parseFloat(row.Expenditure) || 0,
-        Capital_Expenditure: parseFloat(row['Capital Expenditure']) || 0,
-        Personnel_Spending: parseFloat(row['Personnel Spending']) || 0,
-        Social_Spending: parseFloat(row['Social Spending']) || 0,
-        Fiscal_Balance: parseFloat(row['Fiscal Balance']) || 0,
-        Debt: parseFloat(row.Debt) || 0,
-        Population: parseInt(row.Population) || 0,
-        Unemployment: parseFloat(row.Unemployment) || 0,
-        Fiscal_Capacity_Index: parseFloat(row['Fiscal Capacity Index']) || 0,
-        Transfer_Dependency: parseFloat(row['Transfer Dependency']) || 0,
-        Development_Gap_Index: parseFloat(row['Development Gap Index']) || 0,
-        Fiscal_Stress_Score: parseFloat(row['Fiscal Stress Score']) || 0,
-        Fiscal_Risk: row['Fiscal Risk'] || 'Low',
-        Policy_Simulation_Scenario: row['Policy Simulation Scenario'] || '',
-        Policy_Impact: row['Policy Impact'] || '',
-        Policy_Recommendation: row['Policy Recommendation'] || ''
-      }));
+    if (result.values && result.values.length > 1) {
+      const headers = result.values[0];
+      const rows = result.values.slice(1);
+      
+      return rows.map((row: any[], i: number) => {
+        const obj: any = { id: `sheet-${Date.now()}-${i}` };
+        headers.forEach((header: string, index: number) => {
+          let val: any = row[index] || '';
+          if (!isNaN(Number(val)) && val !== '') val = Number(val);
+          obj[header] = val;
+        });
+        return obj as RegionalData;
+      });
     }
     return [];
   } catch (error) {
@@ -82,3 +110,4 @@ export const getFromGoogleSheets = async (): Promise<RegionalData[]> => {
     return [];
   }
 };
+
