@@ -1,5 +1,4 @@
 /// <reference types="vite/client" />
-import { RegionalData } from '../types';
 
 import { RegionalData } from '../types';
 import { getAccessToken } from '../utils/auth';

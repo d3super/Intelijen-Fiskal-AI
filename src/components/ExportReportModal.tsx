@@ -66,14 +66,15 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
     setIsExporting(true);
     
     try {
-      // Temporary unhide the report for rendering
-      reportRef.current.style.display = 'block';
       const dataUrl = await htmlToImage.toPng(reportRef.current, { 
         quality: 1.0,
         pixelRatio: 2,
         backgroundColor: '#ffffff'
       });
-      reportRef.current.style.display = 'none';
+
+      const a4Width = 210;
+      const a4Height = 297;
+      const pdfHeight = (reportRef.current.offsetHeight * a4Width) / reportRef.current.offsetWidth;
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -81,10 +82,19 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
         format: 'a4',
       });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (reportRef.current.offsetHeight * pdfWidth) / reportRef.current.offsetWidth;
+      let heightLeft = pdfHeight;
+      let position = 0;
 
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, 'PNG', 0, position, a4Width, pdfHeight);
+      heightLeft -= a4Height;
+
+      while (heightLeft > 0) {
+        position -= a4Height;
+        pdf.addPage();
+        pdf.addImage(dataUrl, 'PNG', 0, position, a4Width, pdfHeight);
+        heightLeft -= a4Height;
+      }
+
       pdf.save(`Laporan_Fiscalia_${targetData.Region}_${targetData.Year}${targetData.Quarter || ''}.pdf`);
     } catch (error) {
       console.error('Failed to export report PDF', error);
@@ -98,16 +108,37 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
     return null;
   }
 
-  // Use a default simulation scenario to run FiscalSimulation just for the report
-  const defaultScenario: PolicyScenario = {
+  const [presetName, setPresetName] = useState<string>('Pro-Infrastruktur');
+  const [scenario, setScenario] = useState<PolicyScenario>({
     padIncrease: 5,
-    transferDecrease: 0,
-    capitalExpIncrease: 10,
-    personnelExpDecrease: 0,
-    socialExpIncrease: 5
+    capitalExpIncrease: 25,
+    personnelExpDecrease: 10,
+    socialExpIncrease: 5,
+    transferDecrease: 0
+  });
+
+  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setPresetName(val);
+    switch (val) {
+      case 'Pro-Infrastruktur':
+        setScenario({ padIncrease: 5, capitalExpIncrease: 25, personnelExpDecrease: 10, socialExpIncrease: 5, transferDecrease: 0 });
+        break;
+      case 'Austeritas Ketat':
+        setScenario({ padIncrease: 20, capitalExpIncrease: 0, personnelExpDecrease: 15, socialExpIncrease: 0, transferDecrease: 15 });
+        break;
+      case 'Proteksi Sosial':
+        setScenario({ padIncrease: 3, capitalExpIncrease: 5, personnelExpDecrease: 5, socialExpIncrease: 30, transferDecrease: 0 });
+        break;
+      case 'Ekspansi PAD':
+        setScenario({ padIncrease: 15, capitalExpIncrease: 10, personnelExpDecrease: 8, socialExpIncrease: 0, transferDecrease: 15 });
+        break;
+      default:
+        setScenario({ padIncrease: 5, capitalExpIncrease: 25, personnelExpDecrease: 10, socialExpIncrease: 5, transferDecrease: 0 });
+    }
   };
 
-  const simResult = runFiscalSimulation(targetData, defaultScenario);
+  const simResult = runFiscalSimulation(targetData, scenario);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -168,6 +199,20 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
               </div>
             )}
           </div>
+
+          <div>
+             <label className="block text-sm font-medium text-slate-700 mb-1">Instrumen Skenario</label>
+             <select 
+               className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+               value={presetName}
+               onChange={handlePresetChange}
+             >
+               <option value="Pro-Infrastruktur">Pro-Infrastruktur</option>
+               <option value="Proteksi Sosial">Proteksi Sosial</option>
+               <option value="Ekspansi PAD">Ekspansi PAD</option>
+               <option value="Austeritas Ketat">Austeritas Ketat</option>
+             </select>
+          </div>
           
           <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-sm text-indigo-800">
             <p className="font-medium mb-1">Laporan akan mencakup:</p>
@@ -193,7 +238,7 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
       </div>
 
       {/* Hidden layout for PDF Snapshot rendering */}
-      <div style={{ display: 'none' }}>
+      <div className="absolute left-[-9999px] top-[-9999px]">
         <div ref={reportRef} className="bg-white p-10 w-[800px] text-slate-800 font-sans">
           
           {/* Header */}
@@ -250,17 +295,17 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
           </div>
 
           {/* 5: Hasil Simulasi Kebijakan */}
-          <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">5. Hasil Simulasi Kebijakan (Default Mode)</h2>
+          <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">5. Hasil Simulasi Kebijakan ({presetName})</h2>
           
           <div className="mb-6 grid grid-cols-2 gap-6">
             <div>
               <p className="font-semibold text-sm text-slate-800 mb-2">Instrumen Skenario</p>
               <ul className="text-sm text-slate-600 space-y-1 list-disc pl-4">
-                <li>Peningkatan PAD: {defaultScenario.padIncrease}%</li>
-                <li>Pengurangan Transfer: {defaultScenario.transferDecrease}%</li>
-                <li>Peningkatan Belanja Modal: {defaultScenario.capitalExpIncrease}%</li>
-                <li>Pengurangan Belanja Pegawai: {defaultScenario.personnelExpDecrease}%</li>
-                <li>Peningkatan Belanja Sosial: {defaultScenario.socialExpIncrease}%</li>
+                <li>Peningkatan PAD: {scenario.padIncrease}%</li>
+                <li>Pengurangan Transfer: {scenario.transferDecrease}%</li>
+                <li>Peningkatan Belanja Modal: {scenario.capitalExpIncrease}%</li>
+                <li>Pengurangan Belanja Pegawai: {scenario.personnelExpDecrease}%</li>
+                <li>Peningkatan Belanja Sosial: {scenario.socialExpIncrease}%</li>
               </ul>
             </div>
             <div>
