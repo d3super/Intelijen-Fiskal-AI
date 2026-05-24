@@ -74,6 +74,7 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
 
   // Trend data
   const trendData = regionDataAllYears.map(d => ({
+    year: d.Year,
     period: d.Quarter ? `${d.Year} ${d.Quarter}` : `${d.Year}`,
     PAD: d.PAD,
     Transfer: d.Transfer,
@@ -180,7 +181,7 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="year" />
+                <XAxis dataKey="period" />
                 <YAxis yAxisId="left" />
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />

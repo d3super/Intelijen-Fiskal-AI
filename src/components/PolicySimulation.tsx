@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { 
   SlidersHorizontal, ArrowRight, TrendingUp, TrendingDown, Lightbulb, 
-  AlertTriangle, CheckCircle2, ShieldAlert, BookOpen, Compass, Info, Award
+  AlertTriangle, CheckCircle2, ShieldAlert, BookOpen, Compass, Info, Award, HelpCircle, X
 } from 'lucide-react';
 import { 
   runFiscalSimulation, 
@@ -63,6 +63,7 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
   });
 
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
+  const [isStructModalOpen, setIsStructModalOpen] = useState(false);
 
   if (data.length === 0) {
     return (
@@ -350,10 +351,20 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
 
           {/* Regional Context Metrics Diagnostic Card */}
           <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1">
-              <Info size={14} />
-              <span>Karakteristik Struktural Daerah ({regionData.Region})</span>
-            </h4>
+            <div className="flex justify-between items-center">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1">
+                <Info size={14} />
+                <span>Karakteristik Struktural Daerah ({regionData.Region})</span>
+              </h4>
+              <button 
+                onClick={() => setIsStructModalOpen(true)}
+                className="text-xs flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors"
+                title="Lihat interpretasi variabel"
+              >
+                <HelpCircle size={14} />
+                <span>Interpretasi</span>
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white p-3 rounded-lg border border-slate-200">
                 <span className="text-[10px] text-slate-400 block font-medium">Estimasi PDRB Riil:</span>
@@ -568,6 +579,67 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
         </div>
 
       </div>
+
+      {/* Structure Interpretation Modal */}
+      {isStructModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-xl relative">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
+                <Info className="text-indigo-600" size={20} />
+                <span>Interpretasi Karakteristik Struktural Daerah</span>
+              </h3>
+              <button 
+                onClick={() => setIsStructModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full p-2 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">1. Estimasi PDRB Riil</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Total nilai tambah ekonomi daerah yang digunakan sebagai basis kalkulasi beban fiskal dan rasio efek multiplier. Nilai ini sangat menentukan seberapa besar perubahan nominal belanja atau pendapatan dari APBD akan berdampak proporsional terhadap ukuran ekonomi daerah riil (elastisitas basis).
+                </p>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">2. Koefisien Efisiensi</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Tingkat efektivitas penyerapan dan konversi belanja daerah menjadi output ekonomi rill. Koefisien di bawah 100% menandakan adanya red tape, lambatnya eksekusi proyek (lag time), atau inefisiensi alokatif. Koefisien rendah akan melemahkan daya gedor (multiplier) belanja modal.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">3. Regional Leakage (Tingkat Kebocoran Wilayah)</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Persentase injeksi fiskal (belanja pemda) yang tidak berputar di daerah itu sendiri, melainkan "bocor" terserap impor dari wilayah lain (misal: bahan pengerjaan konstruksi didatangkan dari luar provinsi). Tingkat leakage tinggi akan menetralisir dampak positif stimulus ekonomi lokal.
+                </p>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">4. Ketergantungan Transfer</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Proporsi pendapatan daerah yang disokong dari dana pusat (Dana Perimbangan). Tingginya angka ini menandakan kapasitas fiskal rendah dan merugikan sensitivitas PAD. Daerah dengan ketergantungan sangat tinggi lebih rentan terhadap goncangan saat pusat memotong transfer (misal: sanksi over-defisit).
+                </p>
+              </div>
+
+            </div>
+            
+            <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl text-right">
+              <button 
+                onClick={() => setIsStructModalOpen(false)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
