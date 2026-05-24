@@ -242,58 +242,36 @@ export const runFiscalSimulation = (d: RegionalData, scenario: PolicyScenario): 
   else if (riskScore > 25) riskCategory = 'Sedang';
 
   // 9. Policy Advisor Recommendation Engine
-  const recommendations: SimulationResult['recommendations'] = [];
-
-  const rawPersonnelRatio = simExpenditure > 0 ? (basePersonnel - (basePersonnel * (scenario.personnelExpDecrease/100))) / simExpenditure : 0;
+  const rawPersonnelRatio = simExpenditure > 0 ? (basePersonnel + personnelChange) / simExpenditure : 0;
   const rawCapitalRatio = simExpenditure > 0 ? (baseCapital + capitalChange) / simExpenditure : 0;
 
-  if (simDeficitRatio > MAX_DEFICIT_RATIO) {
-    recommendations.push({
-      title: 'Lakukan Manajemen Defisit Segera',
-      description: 'Gunakan saldo kas (SiLPA) tahun lalu atau kurangi defisit dengan menurunkan target kenaikan belanja modal/sosial secara bertahap.',
-      priority: 'high'
-    });
-  }
-
-  if (rawPersonnelRatio > 0.40) {
-    recommendations.push({
-      title: 'Restrukturisasi Belanja Pegawai (Birokrasi Ramping)',
-      description: 'Porsi Belanja Pegawai melebihi 40% dari total belanja. Disarankan melakukan moratorium rekrutmen pegawai non-esensial dan digantikan dengan program digitalisasi pelayanan.',
-      priority: 'high'
-    });
-  }
-
-  if (rawCapitalRatio < 0.20 && simGDP < 5.0) {
-    recommendations.push({
+  const recommendations: SimulationResult['recommendations'] = [
+    {
+      title: 'Manajemen Defisit & Saldo Kas',
+      description: `Rasio defisit simulasi berada di level ${(simDeficitRatio * 100).toFixed(1)}% dari PDRB (batas regulasi: ${(MAX_DEFICIT_RATIO * 100).toFixed(1)}%). ${simDeficitRatio > MAX_DEFICIT_RATIO ? 'Kondisi ini berbahaya. Segera gunakan saldo kas (SiLPA) atau pangkas belanja ekspansif untuk menekan defisit.' : 'Tingkat defisit masih dalam batas aman untuk mendukung kebijakan ekspansi fiskal daerah.'}`,
+      priority: simDeficitRatio > MAX_DEFICIT_RATIO ? 'high' : 'low'
+    },
+    {
+      title: 'Restrukturisasi Belanja Pegawai',
+      description: `Porsi Belanja Pegawai menyentuh angka ${(rawPersonnelRatio * 100).toFixed(1)}% dari total belanja. ${rawPersonnelRatio > 0.40 ? 'Rasio ini melampaui batas ideal 40%. Disarankan moratorium rekrutmen pegawai non-esensial dan fokus pada rasionalisasi birokrasi digital.' : 'Porsi ini relatif sehat (< 40%), memberikan ruang lebih lebar untuk alokasi modal dan program sosial.'}`,
+      priority: rawPersonnelRatio > 0.40 ? 'high' : 'low'
+    },
+    {
       title: 'Akselerasi Pengeluaran Pembangunan',
-      description: 'Porsi Belanja Modal Anda di bawah 20% belanja total. Disarankan mengalihkan dana dari operasional ATK / perjalanan dinas untuk memicu multiplier infrastruktur jangka panjang.',
-      priority: 'medium'
-    });
-  }
-
-  if (scenario.padIncrease < 5 && dependence > 0.70) {
-    recommendations.push({
-      title: 'Ekspansi Basis Pajak & Retribusi Mandiri',
-      description: `Ketergantungan transfer pusat masih sangat tinggi (${(dependence * 100).toFixed(1)}%). Segera lakukan pemetaan ulang potensi PAD digital lewat elektronifikasi transaksi lokal.`,
-      priority: 'medium'
-    });
-  }
-
-  if (efficiency < 0.60) {
-    recommendations.push({
-      title: 'Pengembangan Kualitas Tata Kelola Belanja',
-      description: 'Indeks efisiensi penyerapan anggaran rendah. Lakukan pengawasan ketat e-purchasing dan review tata ruang untuk meminimalkan sisa anggaran (SiLPA) tidak terserap.',
-      priority: 'low'
-    });
-  }
-
-  if (recommendations.length === 0) {
-    recommendations.push({
-      title: 'Skenario Fiskal Sehat & Berkelanjutan',
-      description: 'Skenario ini mempertahankan bauran belanja produktif dan menjaga kesinambungan fiskal tanpa membebani masyarakat lokal.',
-      priority: 'low'
-    });
-  }
+      description: `Rasio Belanja Modal saat ini berada di level ${(rawCapitalRatio * 100).toFixed(1)}%. ${rawCapitalRatio < 0.20 ? 'Angka ini sangat kurang (< 20%). Disarankan realokasi belanja operasional (misal: perjalanan dinas) untuk pembangunan infrastruktur fisik jangka panjang.' : 'Alokasi belanja infrastruktur terbilang stabil dan ideal untuk menghasilkan spillover pertumbuhan rill lokal.'}`,
+      priority: rawCapitalRatio < 0.20 ? 'medium' : 'low'
+    },
+    {
+      title: 'Ekspansi Kemandirian Basis Pajak',
+      description: `Ketergantungan terhadap Dana Transfer Pusat diestimasi sebesar ${(dependence * 100).toFixed(1)}%. ${dependence > 0.70 ? 'Eksposur risiko transfer sangat tinggi (> 70%). Susun pemetaan ulang potensi PAD dan digitalisasi intensifikasi pungutan pajak/retribusi daerah.' : 'Tingkat kemandirian cukup tangguh, meski optimalisasi setoran pajak daerah masih bisa terus disisir.'}`,
+      priority: dependence > 0.70 ? 'medium' : 'low'
+    },
+    {
+      title: 'Optimalisasi Tata Kelola & Serapan',
+      description: `Indeks efisiensi penyerapan terukur pada level ${(efficiency * 100).toFixed(1)}%. ${efficiency < 0.60 ? 'Serapan sangat rendah (< 60%). Percepat perbaikan e-purchasing, cegah tender tertunda, dan tekan laju pertumbuhan SiLPA yang tidak produktif.' : 'Ritme penyerapan anggaran sudah berjalan efektif, pastikan kualitas luaran proyek tercapai sesuai Masterplan.'}`,
+      priority: efficiency < 0.60 ? 'medium' : 'low'
+    }
+  ];
 
   return {
     baseline: {

@@ -4,13 +4,14 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
-import { Activity, AlertTriangle, TrendingDown, TrendingUp, ShieldAlert, Calendar } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingDown, TrendingUp, ShieldAlert, Calendar, HelpCircle, X, Info } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
   const uniqueRegions = useMemo(() => Array.from(new Set(data.map(d => d.Region))).sort(), [data]);
   const [selectedRegion, setSelectedRegion] = useState<string>(uniqueRegions[0] || '');
+  const [isRuleInfoOpen, setIsRuleInfoOpen] = useState(false);
 
   const regionDataAllYears = useMemo(() => {
     return data.filter(d => d.Region === selectedRegion).sort((a, b) => a.Year - b.Year);
@@ -143,6 +144,18 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
           </select>
         </div>
       </div>
+      
+      {/* Information Button */}
+      <div className="flex justify-end">
+        <button 
+          onClick={() => setIsRuleInfoOpen(true)}
+          className="text-xs flex items-center space-x-1.5 text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors border border-indigo-100 shadow-sm"
+          title="Lihat parameter teknis"
+        >
+          <HelpCircle size={14} />
+          <span className="font-medium">Parameter dan Aturan Fiskal</span>
+        </button>
+      </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -274,6 +287,75 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
           />
         </div>
       </div>
+      
+      {/* Rules Information Modal */}
+      {isRuleInfoOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-xl relative">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur z-10">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center space-x-2">
+                <Info className="text-indigo-600" size={20} />
+                <span>Parameter dan Aturan Fiskal</span>
+              </h3>
+              <button 
+                onClick={() => setIsRuleInfoOpen(false)}
+                className="text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full p-2 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">1. Indeks Kapasitas Fiskal</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Mengukur kemampuan daerah dalam membiayai pengeluaran secara mandiri (terutama dari PAD terhadap total pengeluaran).
+                </p>
+                <ul className="mt-3 text-xs space-y-1 text-slate-500 font-medium">
+                  <li>&bull; <span className="font-bold">Kapasitas Tinggi ({">"} 60)</span> : Mampu mandiri, tangguh terhadap gejolak transfer.</li>
+                  <li>&bull; <span className="font-bold">Kapasitas Sedang (30 - 60)</span> : Cukup aman namun perlu terus dioptimalkan.</li>
+                  <li>&bull; <span className="font-bold">Kapasitas Rendah ({"<"} 30)</span> : Rentan, basis pajak sangat terbatas.</li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">2. Ketergantungan Transfer</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Rasio dana transfer (DAU, DAK, DBH) pusat terhadap total pendapatan. Ketergantungan yang berlebihan melemahkan insentif pemda untuk memungut PAD.
+                </p>
+                <ul className="mt-3 text-xs space-y-1 text-slate-500 font-medium">
+                  <li>&bull; <span className="font-bold">Ketergantungan Berat ({">"} 70%)</span> : Risiko tinggi jika transfer dikurangi.</li>
+                  <li>&bull; <span className="font-bold">Ketergantungan Moderat ({"<"} 70%)</span> : Relatif proporsional.</li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <h4 className="font-bold text-sm text-slate-800 mb-2">3. Stres Fiskal (Fiscal Stress Score)</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  Indikator komposit yang mengukur tekanan anggaran dari besarnya porsi belanja operasional (terutama belanja pegawai) serta rasio defisit terhadap total pendapatan.
+                </p>
+                <ul className="mt-3 text-xs space-y-1 text-slate-500 font-medium">
+                  <li>&bull; <span className="font-bold">Sehat / Low Risk (Skor {"<"} 25)</span> : Ruang fiskal longgar.</li>
+                  <li>&bull; <span className="font-bold">Hati-hati / Moderate (Skor 25 - 50)</span> : Belanja mengikat mulai menekan.</li>
+                  <li>&bull; <span className="font-bold">Risiko Tinggi / High Risk (Skor 50 - 75)</span> : Ruang fiskal untuk pembangunan sangat terbatas.</li>
+                  <li>&bull; <span className="font-bold">Stres Berat / Severe (Skor {">"} 75)</span> : APBD terancam krisis likuiditas berlarut.</li>
+                </ul>
+              </div>
+
+            </div>
+            
+            <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl text-right">
+              <button 
+                onClick={() => setIsRuleInfoOpen(false)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg text-sm transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
