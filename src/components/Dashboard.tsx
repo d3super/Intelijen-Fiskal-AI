@@ -2,11 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { RegionalData } from '../types';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  LineChart, Line, ScatterChart, Scatter, ZAxis
+  LineChart, Line, ScatterChart, Scatter, ZAxis, Cell
 } from 'recharts';
 import { AlertTriangle, TrendingUp, DollarSign, Activity, Calendar } from 'lucide-react';
 
 export default function Dashboard({ data }: { data: RegionalData[] }) {
+  const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899'];
+
   const availableYears = useMemo(() => {
     return Array.from(new Set(data.map(d => d.Year))).sort((a, b) => b - a);
   }, [data]);
@@ -298,7 +300,21 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
                     <YAxis type="number" dataKey="capacity" name="Kapasitas Fiskal" />
                     <ZAxis type="number" dataKey="stress" range={[50, 400]} name="Skor Stres" />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Daerah" data={dependencyVsCapacity} fill="#f43f5e" />
+                    <Legend />
+                    {(() => {
+                      const regionList = Array.from(new Set(dependencyVsCapacity.map(d => d.name.split(' (')[0])));
+                      return regionList.map((region, index) => {
+                        const regionData = dependencyVsCapacity.filter(d => d.name.split(' (')[0] === region);
+                        return (
+                          <Scatter 
+                            key={region} 
+                            name={region} 
+                            data={regionData} 
+                            fill={COLORS[index % COLORS.length]} 
+                          />
+                        );
+                      });
+                    })()}
                   </ScatterChart>
                 </ResponsiveContainer>
               </div>
