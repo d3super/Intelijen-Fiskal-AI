@@ -140,15 +140,19 @@ export default function App() {
             data={regionalData} 
             initialPreset={selectedPreset}
             onClearPreset={() => setSelectedPreset(null)}
+            user={user}
+            onLogin={handleLogin}
           />
         );
       case 'scenarioLibrary':
         return (
           <ScenarioLibrary 
-            onApplyScenario={(presetKey) => {
-              setSelectedPreset(presetKey);
+            onApplyScenario={(scenario) => {
+              setSelectedPreset(scenario);
               setActiveTab('simulation');
             }}
+            user={user}
+            onLogin={handleLogin}
           />
         );
       case 'glossary':
@@ -311,6 +315,7 @@ export default function App() {
         <ExportReportModal 
           data={regionalData} 
           onClose={() => setIsExportModalOpen(false)} 
+          user={user}
         />
       )}
     </div>

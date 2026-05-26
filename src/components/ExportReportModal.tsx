@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { RegionalData, PolicyScenario } from '../types';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { RegionalData, PolicyScenario, CustomScenario } from '../types';
 import { runFiscalSimulation } from '../utils/fiscalMultiplierModel';
 import { Loader2, X, Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
+import { getCustomScenariosFromSheets } from '../services/googleSheets';
 
 const getRiskLabel = (risk?: string) => {
   switch(risk) {
@@ -18,9 +19,10 @@ const getRiskLabel = (risk?: string) => {
 interface ExportReportModalProps {
   data: RegionalData[];
   onClose: () => void;
+  user?: any;
 }
 
-export default function ExportReportModal({ data, onClose }: ExportReportModalProps) {
+export default function ExportReportModal({ data, onClose, user }: ExportReportModalProps) {
   const uniqueRegions = useMemo(() => Array.from(new Set(data.map(d => d.Region))).sort(), [data]);
   const [selectedRegion, setSelectedRegion] = useState<string>(uniqueRegions[0] || '');
 
@@ -117,6 +119,38 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
     transferDecrease: 0
   });
 
+  const [customScenarios, setCustomScenarios] = useState<CustomScenario[]>([]);
+  const [isLoadingCustoms, setIsLoadingCustoms] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    if (user) {
+      setIsLoadingCustoms(true);
+      getCustomScenariosFromSheets()
+        .then((data) => {
+          if (active) {
+            setCustomScenarios(data || []);
+          }
+        })
+        .catch((err) => {
+          console.error("Gagal mengambil skenario kustom dalam modal ekspor:", err);
+        })
+        .finally(() => {
+          if (active) {
+            setIsLoadingCustoms(false);
+          }
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const activePresetLabel = useMemo(() => {
+    const custom = customScenarios.find(cs => cs.id === presetName || cs.title === presetName);
+    return custom ? custom.title : presetName;
+  }, [presetName, customScenarios]);
+
   const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setPresetName(val);
@@ -133,8 +167,20 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
       case 'Ekspansi PAD':
         setScenario({ padIncrease: 15, capitalExpIncrease: 10, personnelExpDecrease: 8, socialExpIncrease: 0, transferDecrease: 15 });
         break;
-      default:
-        setScenario({ padIncrease: 5, capitalExpIncrease: 25, personnelExpDecrease: 10, socialExpIncrease: 5, transferDecrease: 0 });
+      default: {
+        const found = customScenarios.find(cs => cs.id === val || cs.title === val);
+        if (found) {
+          setScenario({
+            padIncrease: found.padIncrease,
+            capitalExpIncrease: found.capitalExpIncrease,
+            personnelExpDecrease: found.personnelExpDecrease,
+            socialExpIncrease: found.socialExpIncrease,
+            transferDecrease: found.transferDecrease
+          });
+        } else {
+          setScenario({ padIncrease: 5, capitalExpIncrease: 25, personnelExpDecrease: 10, socialExpIncrease: 5, transferDecrease: 0 });
+        }
+      }
     }
   };
 
@@ -207,11 +253,28 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
                value={presetName}
                onChange={handlePresetChange}
              >
-               <option value="Pro-Infrastruktur">Pro-Infrastruktur</option>
-               <option value="Proteksi Sosial">Proteksi Sosial</option>
-               <option value="Ekspansi PAD">Ekspansi PAD</option>
-               <option value="Austeritas Ketat">Austeritas Ketat</option>
+               <optgroup label="Skenario Bawaan (Presets)">
+                 <option value="Pro-Infrastruktur">Pro-Infrastruktur</option>
+                 <option value="Proteksi Sosial">Proteksi Sosial</option>
+                 <option value="Ekspansi PAD">Ekspansi PAD</option>
+                 <option value="Austeritas Ketat">Austeritas Ketat</option>
+               </optgroup>
+               {customScenarios.length > 0 && (
+                 <optgroup label="Skenario Kustom Saya (Google Sheets)">
+                   {customScenarios.map((cs, idx) => (
+                     <option key={cs.id || `cs-${idx}`} value={cs.id || cs.title}>
+                       {cs.title} ({cs.region || 'Nasional'} {cs.year || '2026'})
+                     </option>
+                   ))}
+                 </optgroup>
+               )}
              </select>
+             {isLoadingCustoms && (
+               <p className="text-[11px] text-slate-400 mt-1 flex items-center space-x-1 font-medium">
+                 <Loader2 size={10} className="animate-spin text-indigo-500" />
+                 <span>Memuat skenario kustom Anda...</span>
+               </p>
+             )}
           </div>
           
           <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-sm text-indigo-800">
@@ -295,7 +358,7 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
           </div>
 
           {/* 5: Hasil Simulasi Kebijakan */}
-          <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">5. Hasil Simulasi Kebijakan ({presetName})</h2>
+          <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4">5. Hasil Simulasi Kebijakan ({activePresetLabel})</h2>
           
           <div className="mb-6 grid grid-cols-2 gap-6">
             <div>

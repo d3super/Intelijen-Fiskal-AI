@@ -42,3 +42,19 @@ export interface PolicyScenario {
   socialExpIncrease: number;
   transferDecrease: number;
 }
+
+export interface CustomScenario {
+  id: string;
+  title: string;
+  description: string;
+  region: string;
+  year: number;
+  quarter?: string;
+  padIncrease: number;
+  capitalExpIncrease: number;
+  personnelExpDecrease: number;
+  socialExpIncrease: number;
+  transferDecrease: number;
+  createdAt: string;
+}
+
