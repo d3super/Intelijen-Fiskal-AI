@@ -18,7 +18,15 @@ import {
   SimulationResult
 } from '../utils/fiscalMultiplierModel';
 
-export default function PolicySimulation({ data }: { data: RegionalData[] }) {
+export default function PolicySimulation({ 
+  data, 
+  initialPreset, 
+  onClearPreset 
+}: { 
+  data: RegionalData[], 
+  initialPreset?: string | null, 
+  onClearPreset?: () => void 
+}) {
   const uniqueRegions = useMemo(() => Array.from(new Set(data.map(d => d.Region))).sort(), [data]);
   const [selectedRegion, setSelectedRegion] = useState<string>(uniqueRegions[0] || '');
 
@@ -49,7 +57,7 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
   useEffect(() => {
     if (availableQuarters.length > 0 && !availableQuarters.includes(selectedQuarter)) {
       setSelectedQuarter(availableQuarters[0]);
-    } else if (availableQuarters.length === 0) {
+    } else if (availableQuarters.length === 0 && selectedQuarter !== '') {
       setSelectedQuarter('');
     }
   }, [availableQuarters, selectedQuarter]);
@@ -64,28 +72,6 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
 
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [isStructModalOpen, setIsStructModalOpen] = useState(false);
-
-  if (data.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
-        <SlidersHorizontal size={48} className="mb-4 text-slate-300" />
-        <h3 className="text-xl font-medium text-slate-700">Tidak Ada Data Tersedia</h3>
-        <p className="mt-2">Silakan unggah data fiskal daerah untuk menjalankan simulasi kebijakan.</p>
-      </div>
-    );
-  }
-
-  // Find baseline region record
-  const regionData = regionDataAllYears.find(d => d.Year === selectedYear && (d.Quarter === selectedQuarter || (!d.Quarter && !selectedQuarter))) || regionDataAllYears.find(d => d.Year === selectedYear) || regionDataAllYears[0];
-
-  if (!regionData) return null;
-
-  // Run economic simulator
-  const simResult: SimulationResult = runFiscalSimulation(regionData, scenario);
-
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof PolicyScenario) => {
-    setScenario({ ...scenario, [field]: parseFloat(e.target.value) });
-  };
 
   // Pre-configured policy presets (scenarios)
   const applyPreset = (presetType: string) => {
@@ -126,6 +112,15 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
           transferDecrease: 15
         });
         break;
+      case 'efficiency': // Reformasi Birokrasi (Efisiensi)
+        setScenario({
+          padIncrease: 0,
+          capitalExpIncrease: 15,
+          personnelExpDecrease: 15,
+          socialExpIncrease: 0,
+          transferDecrease: 0
+        });
+        break;
       default:
         setScenario({
           padIncrease: 0,
@@ -135,6 +130,38 @@ export default function PolicySimulation({ data }: { data: RegionalData[] }) {
           transferDecrease: 0
         });
     }
+  };
+
+  // Apply initial preset if passed from Scenario Library
+  useEffect(() => {
+    if (initialPreset) {
+      applyPreset(initialPreset);
+      if (onClearPreset) {
+        onClearPreset();
+      }
+    }
+  }, [initialPreset, onClearPreset]);
+
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-slate-500 py-20">
+        <SlidersHorizontal size={48} className="mb-4 text-slate-300" />
+        <h3 className="text-xl font-medium text-slate-700">Tidak Ada Data Tersedia</h3>
+        <p className="mt-2">Silakan unggah data fiskal daerah untuk menjalankan simulasi kebijakan.</p>
+      </div>
+    );
+  }
+
+  // Find baseline region record
+  const regionData = regionDataAllYears.find(d => d.Year === selectedYear && (d.Quarter === selectedQuarter || (!d.Quarter && !selectedQuarter))) || regionDataAllYears.find(d => d.Year === selectedYear) || regionDataAllYears[0];
+
+  if (!regionData) return null;
+
+  // Run economic simulator
+  const simResult: SimulationResult = runFiscalSimulation(regionData, scenario);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof PolicyScenario) => {
+    setScenario({ ...scenario, [field]: parseFloat(e.target.value) });
   };
 
   // Interactive charting format variables

@@ -47,6 +47,8 @@ export default function Dashboard({ data }: { data: RegionalData[] }) {
   React.useEffect(() => {
     if (availableQuarters.length > 0 && selectedQuarter !== 'all' && !availableQuarters.includes(selectedQuarter)) {
       setSelectedQuarter('all');
+    } else if (availableQuarters.length === 0 && selectedQuarter !== 'all') {
+      setSelectedQuarter('all');
     }
   }, [availableQuarters, selectedQuarter]);
 

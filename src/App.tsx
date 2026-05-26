@@ -11,12 +11,16 @@ import {
   ChevronLeft,
   Database,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  BookOpen,
+  Library
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import DataUpload from './components/DataUpload';
 import FiscalAnalysis from './components/FiscalAnalysis';
 import PolicySimulation from './components/PolicySimulation';
+import Glossary from './components/Glossary';
+import ScenarioLibrary from './components/ScenarioLibrary';
 import { RegionalData } from './types';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
@@ -32,6 +36,7 @@ export default function App() {
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   
   // Auth & Sync state
   const [isLoading, setIsLoading] = useState(true);
@@ -130,7 +135,24 @@ export default function App() {
       case 'analysis':
         return <FiscalAnalysis data={regionalData} />;
       case 'simulation':
-        return <PolicySimulation data={regionalData} />;
+        return (
+          <PolicySimulation 
+            data={regionalData} 
+            initialPreset={selectedPreset}
+            onClearPreset={() => setSelectedPreset(null)}
+          />
+        );
+      case 'scenarioLibrary':
+        return (
+          <ScenarioLibrary 
+            onApplyScenario={(presetKey) => {
+              setSelectedPreset(presetKey);
+              setActiveTab('simulation');
+            }}
+          />
+        );
+      case 'glossary':
+        return <Glossary />;
       default:
         return <Dashboard data={regionalData} />;
     }
@@ -142,6 +164,8 @@ export default function App() {
       case 'upload': return 'Unggah Data';
       case 'analysis': return 'Analisis Fiskal';
       case 'simulation': return 'Simulasi Kebijakan';
+      case 'scenarioLibrary': return 'Pustaka Skenario';
+      case 'glossary': return 'Glosarium Formulasi & Metodologi';
       default: return 'Dasbor';
     }
   };
@@ -194,6 +218,20 @@ export default function App() {
             label="Simulasi Kebijakan" 
             active={activeTab === 'simulation'} 
             onClick={() => setActiveTab('simulation')}
+            isOpen={isSidebarOpen}
+          />
+          <NavItem 
+            icon={<Library size={20} />} 
+            label="Pustaka Skenario" 
+            active={activeTab === 'scenarioLibrary'} 
+            onClick={() => setActiveTab('scenarioLibrary')}
+            isOpen={isSidebarOpen}
+          />
+          <NavItem 
+            icon={<BookOpen size={20} />} 
+            label="Glosarium Metodologi" 
+            active={activeTab === 'glossary'} 
+            onClick={() => setActiveTab('glossary')}
             isOpen={isSidebarOpen}
           />
         </nav>

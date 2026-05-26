@@ -54,7 +54,7 @@ export default function ExportReportModal({ data, onClose }: ExportReportModalPr
   React.useEffect(() => {
     if (availableQuarters.length > 0 && !availableQuarters.includes(selectedQuarter)) {
       setSelectedQuarter(availableQuarters[0]);
-    } else if (availableQuarters.length === 0) {
+    } else if (availableQuarters.length === 0 && selectedQuarter !== '') {
       setSelectedQuarter('');
     }
   }, [availableQuarters, selectedQuarter]);

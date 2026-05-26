@@ -1,110 +1,165 @@
-# PROPOSAL INOVASI DATA STORYTELLING: FISCALIA
+# DOKUMEN USE CASE & PROPOSAL INOVASI DATA STORYTELLING: FISCALIA
+
 **Sandi Kebijakan Masa Depan: Pemodelan Terpadu Dinamika Fiskal & Simulasi Makroekonomi Regional**
 
 ---
 
-## 1. Identitas Proyek & Abstrak
+## 1. Latar Belakang (Background)
 
-*   **Nama Aplikasi:** Fiscalia
-*   **Platform Utama:** Dashboard Policy Sandbox & Executive Monitoring System
-*   **Tema Inovasi:** *Subnational Macro-Fiscal Storytelling through Interactive Partial Equilibrium Sandbox*
-*   **Target Audiens Juri / Kompetisi:** Kementerian Keuangan (DJPb), Kementerian PPN/Bappenas, Bappeda Provinsi/Kabupaten/Kota, Akademisi, dan Analis Kebijakan Publik.
+Kebijakan fiskal di tingkat subnasional (pemerintah daerah) memegang peranan krusial dalam mempercepat pembangunan ekonomi, mengurangi kemiskinan, dan menciptakan kesejahteraan masyarakat setempat. Sejak diimplementasikannya era Otonomi Daerah di Indonesia, pemerintah daerah diberikan wewenang besar untuk mengelola Pendapatan Asli Daerah (PAD) serta mengalokasikan Belanja Daerah. 
 
-### Abstrak
-Kebijakan fiskal di tingkat subnasional sering kali dirumuskan tanpa visibilitas dampak ekonomi riil jangka pendek dan menengah. Model-model yang ada umumnya bersifat "historis-statistis"—menunjukkan apa yang terjadi tanpa memprediksi sirkulasi dampak sisa (residual impact). **Fiscalia** hadir sebagai solusi inovasi *data storytelling* interaktif yang menjembatani kesenjangan tersebut melalui pendekatan **Static Partial Equilibrium Fiscal Multiplier Model** yang telah disesuaikan dengan parameter struktural regional (efisiensi belanja, kebocoran wilayah, ketergantungan transfer, dan kapasitas stres kas). Proposal use case ini menguraikan bagaimana Fiscalia merajut angka-angka penganggaran kering menjadi narasi kebijakan yang intuitif, menyelamatkan pengambil keputusan dari "austeritas buta" dan mempercepat pertumbuhan PDRB yang kredibel.
+Namun, perumusan kebijakan fiskal daerah sering kali menghadapi tantangan berat berupa **"Austeritas Buta" (Blind Austerity)** atau **"Ekspansi Tanpa Arah" (Expansive Disconnect)**. Pengambil keputusan, seperti Kepala Daerah (Gubernur/Bupati/Wali Kota), Bappeda, dan Badan Pengelola Keuangan Daerah (BPKAD), kerap kali merancang struktur APBD tanpa visibilitas kuantitatif terhadap dampaknya pada Produk Domestik Regional Bruto (PDRB) riil di jangka pendek maupun menengah. Penghematan pengeluaran atau penggenjotan pajak/retribusi daerah sering diambil secara instinktif tanpa memodelkan efek multiplier ekonomi riil. 
+
+Selain itu, dokumen penganggaran yang tebal dan rumit membuat data keuangan menjadi "dingin" dan tidak ramah bagi pimpinan daerah yang membutuhkan kesimpulan cepat yang kredibel. **Fiscalia** hadir sebagai jembatan inovatif berbentuk platform *Executive Policy Sandbox* yang mengemas rumitnya rumus-rumus ekonometrika makro ke dalam narasi visual interaktif (*interactive data storytelling*), menyelamatkan pengambil keputusan dari kegelapan formulasi kebijakan publik.
 
 ---
 
-## 2. Urgensi Masalah (The Visual Narrative Problem)
+## 2. Gambaran Umum Aplikasi (General Overview)
 
-### Masalah 1: "Policy in the Dark" (Kebutaan Multiplier)
-Pemerintah Daerah sering kali dipaksa melakukan kalkulasi belanja belanja modal (infrastruktur), pegawai, dan sosial tanpa mengetahui secara pasti nilai *multiplier* riilnya terhadap Produk Domestik Regional Bruto (PDRB). Akibatnya, penghematan anggaran (austeritas) atau ekspansi pajak (PAD) sering kali memicu kontraksi ekonomi mendalam tanpa diprediksi sebelumnya.
+**Fiscalia** adalah aplikasi analisis keuangan subnasional terintegrasi yang menggabungkan kemampuan pemantauan kondisi fiskal historis (*Historical Executive Monitoring*) dengan simulasi skenario kebijakan masa depan (*Interactive Partial Equilibrium Policy Sandbox*). Built-in dengan kerangka kerja ekonometrika yang teruji secara global (IMF & OECD Subnational Guidelines), Fiscalia menyederhanakan data APBD dan PDRB menjadi cerita kebijakan yang berorientasi pada hasil tindakan (*actionable insights*).
 
-### Masalah 2: Data Makroekonomi yang Menjemukan
-Laporan APBD dan data PDRB disajikan dalam format spreadsheet ratusan halaman atau bagan statis. Angka-angka ini kehilangan jiwanya karena tidak ada hubungan dinamis di antara mereka. Seorang Bupati atau Kepala Bappeda tidak dapat melihat dampak waktu nyata (*real-time link*) antara keputusan memotong anggaran perjalanan dinas sebesar 10% dengan peningkatan stimulus daya beli masyarakat lokal.
-
-### Masalah 3: Pengingat Keberlanjutan yang Terlambat
-Peringatan defisit anggaran atau potensi sanksi kas sering kali baru disadari setelah tahun anggaran berakhir ketika Laporan Hasil Pemeriksaan (LHP) terbit. Sistem simulasi dini sangat minim di tingkat lokal.
-
----
-
-## 3. Komponen Inovasi Solusi: "Fiscalia"
-
-Fiscalia mengemas rumitnya rumus-rumus ekonometrika makro ke dalam antarmuka interaktif yang dipisahkan menjadi 3 komponen besar visual storytelling:
-
-```
-  [ INPUT DATA FISKAL ] ---> [ MODEL ENGINES (IMF/OECD Multipliers) ] ---> [ LIVE VISUAL STORYTELLING ]
-  - APBD Realisasi           - Lag structure (Capital vs Social)            - Real GDP Growth Impact %
-  - PDRB Harga Berlaku       - Spending Efficiency Index                    - Deficit Debt Ratio Warning
-  - Target PAD/Belanja       - Regional Leakage & Stress Penalty            - Interactive Policy Presets
-```
-
-### Parameter Utama Regional yang Dimodelkan:
-1.  **Spending Efficiency Index (Koefisien Efisiensi):** Mengukur seberapa optimal daerah mentransmisikan anggaran belanja menjadi pembangunan fisik tanpa korupsi atau inefisiensi administrasi.
-2.  **Regional Leakage Index (Indeks Kebocoran Wilayah):** Menganalisis seberapa banyak sirkulasi uang belanja lokal yang mengalir keluar ("bocor") untuk mengimpor barang konstruksi dari luar daerah.
-3.  **Fiscal Stress Penalty:** Algoritma penalti otomatis yang memotong daya multiplier jika rasio defisit melampaui batas aman undang-undang fiskal daerah (5% dari PDRB).
+Aplikasi ini memiliki pilar fungsi utama:
+1.  **Eksekutif Dashboard:** Menyajikan metrik utama kesehatan keuangan daerah berbasis data historis yang diunggah.
+2.  **Upload & Sinkronisasi Cloud:** Pengguna dapat mengunggah file excel/spreadsheet APBD makro secara instan, dan menyimpannya secara aman ke struktur Google Sheets pribadi yang terkoneksi langsung via integrasi Google OAuth dan Firebase Authentication.
+3.  **Analisis Diagnostik Otomatis:** Menghasilkan narasi evaluasi cerdas yang mengevaluasi struktur PAD, rasio ketergantungan transfer pusat, efisiensi belanja pegawai, dan kelayakan utang daerah.
+4.  **Sandbox Simulasi Skenario Kebijakan:** Memungkinkan pengguna mensimulasikan perubahan instrumen fiskal daerah (misal: akselerasi infrastruktur, stimulasi bantuan sosial, moratorium belanja pegawai, dan penyesuaian PAD) secara langsung menggunakan slider interaktif.
+5.  **Ekspor Laporan PDF Eksekutif:** Memformulasikan dokumen ringkasan kebijakan (*policy brief*) 1-2 halaman yang rapi dan siap cetak untuk bahan sidang anggaran Kepala Daerah.
 
 ---
 
-## 4. Kasus Penggunaan Mendalam (Detailed Use Case Scenarios)
+## 3. Jumlah dan Jenis Data (Data Volume & Typology)
 
-Mari bedah skenario storytelling interaktif yang dipresentasikan selama kompetisi:
+Fiscalia mendukung pengolahan data *multi-regional* berskala dinamis, mulai dari tingkat Kabupaten/Kota tunggal, agregat Provinsi, hingga komparasi deret waktu historis lintas tahun atau kuartal (temporal series).
 
-### Skenario 1: Jebakan Austeritas Daerah (The Austerity Trap)
-*   **Latar Belakang Narasi:** Kabupaten Jayakarta tertatih-tatih di kurva pemulihan ekonomi dengan pertumbuhan baseline rendah sebesar **4.5%**. Daerah ini memiliki tingkat ketergantungan transfer pusat yang amat tinggi (**70%**). Bappeda mengusulkan pengetatan moneter internal: menaikkan rasio PAD sebesar **20%** secara drastis melalui simplifikasi tarif retribusi tanpa menambah alokasi Belanja Modal (Infrastruktur).
-*   **Interaksi Storytelling pada Fiscalia:**
-    1.  User memilih daerah "Jayakarta" dan menggeser slider **PAD Increase ke +20%**, dan menggeser **Capital Expenditure Increase ke 0%**.
-    2.  **Efek Visual Seketika:** Warna panel Growth meluncur turun dari hijau stabil menuju merah menyala di angka **1.1%** pertumbuhan ekonomi.
-    3.  Sistem secara dinamis mendeteksi kondisi ini dan meluncurkan alert bertajuk: **"Austeritas Fiskal Berbahaya"** di layar diagnostik.
-    4.  *The Data Story:* Fiscalia menceritakan kepada Kepala Dinas bahwa penarikan pajak berlebihan di tengah ketiadaan suntikan belanja infrastruktur menyedot likuiditas dari kantong rumah tangga mikro, mematikan roda ekonomi lokal dalam waktu singkat.
+### A. Jumlah / Volume Data
+*   **Kapasitas Pengolahan:** Mendukung ratusan baris data regional yang terstruktur rapi untuk pelacakan dinamis sepanjang tahun/kuartal (misal: analisis serial triwulanan dari `2020Q1` hingga `2025Q4`).
+*   **Metode Masukan Data:** Dukungan pengunggahan berkas digital (Excel/CSV drag-and-drop), serta integrasi database cloud personal menggunakan Google Sheets API untuk menjamin persistensi jangka panjang.
 
-### Skenario 2: Alokasi Pro-Growth Seimbang (The Balanced Accelerator)
-*   **Latar Belakang Narasi:** Provinsi Surabaya Barat ingin mendorong percepatan PDRB melompat di atas tingkat pertumbuhan saat ini. Mereka memiliki cadangan efisiensi belanja menengah (**65%**). Ada perdebatan antara memotong anggaran pegawai yang tidak produktif untuk dipindahkan ke belanja modal vs bantuan sosial.
-*   **Interaksi Storytelling pada Fiscalia:**
-    1.  User mengaktifkan Preset **"Pro-Infrastruktur / Pro-Growth"**.
-    2.  Sistem otomatis memposisikan penambahan Belanja Modal **+25%**, melakukan perampingan Belanja Pegawai **-10%**, dan memberikan stimulus minor Bantuan Sosial **+5%**.
-    3.  **Efek Transmisi Model:** Meskipun pemotongan belanja pegawai menahan konsumsi bruto aparatur sipil secara sementara (kontraksi minor **-0.05%**), suntikan masif ke infrastruktur dengan multiplier tinggi (**1.4x**) berhasil melontarkan total pertumbuhan PDRB Jayakarta naik hingga **+1.25%** net positif.
-    4.  *The Data Story:* Grafik batang perbandingan di layar menunjukkan peningkatan ruang fiskal yang sehat, sementara daftar rekomendasi otomatis menyarankan: *"Porsi Belanja Pegawai kini sudah di bawah ambang waspada (30% total APBD), sisa anggaran diproyeksikan aman dialihkan ke konstruksi jangka panjang"*
+### B. Jenis Data & Variabel (Typology)
+Variabel yang diproses oleh Fiscalia meliputi tiga domain utama yang saling berkaitan erat secara spasial dan temporal:
+
+| Kategori Variabel | Nama Variabel | Unit/Format | Deskripsi Operasional |
+| :--- | :--- | :---: | :--- |
+| **Identitas & Demografi** | Wilayah (Region) <br>Provinsi (Province) <br>Tahun (Year) <br>Kuartal (Quarter) <br>Penduduk (Population) | Teks <br>Teks <br>YYYY <br>YYYYQX <br>Jiwa | Identifikasi wilayah administrasi serta struktur demografi dasar daerah yang dianalisis. |
+| **Keuangan Daerah (APBD)** | Revenue <br>PAD <br>Transfer <br>Expenditure <br>Capital Expenditure <br>Personnel Spending <br>Social Spending <br>Fiscal Balance <br>Debt | Nilai Nominal Rupiah | **Revenue:** Pendapatan total daerah. <br>**PAD:** Pendapatan asli (pajak/retribusi lokal). <br>**Transfer:** Dana bagi hasil/alokasi pusat (DAU/DAK). <br>**Expenditure:** Belanja total APBD. <br>**Capital Exp:** Belanja modal infrastruktur fisik. <br>**Personnel Spending:** Belanja gaji/tunjangan pegawai. <br>**Social Spending:** Belanja bantuan sosial & subsidi. <br>**Fiscal Balance:** Defisit/surplus (Pendapatan - Belanja). <br>**Debt:** Outstanding akumulasi utang daerah. |
+| **Makroekonomi & Output** | GDP Growth <br>Unemployment <br>Regional GDP Current Price | Persentase (%) <br>Persentase (%) <br>Nilai Nominal Rupiah | **GDP Growth:** Laju pertumbuhan PDRB riil regional. <br>**Unemployment:** Tingkat Pengangguran Terbuka daerah. <br>**Regional GDP:** Nominal PDRB harga berlaku regional (fitur estimasi otomatis `Revenue * 6.5` jika kosong). |
 
 ---
 
-## 5. Nilai Tambah Teknis & Ekonometrika Model (Methodology Backbone)
+## 4. Teknik Pengolahan Data (Advanced Data Processing & Calculations)
 
-Untuk memenangkan kompetisi inovasi, model matematika di balik storytelling harus teruji secara akademis dan empiris. Fiscalia menerapkan **Static Partial Equilibrium Fiscal Multiplier Model** dengan detail berikut:
+Data mentah APBD diolah menggunakan serangkaian algoritma statistik keuangan daerah untuk mengkristalkannya menjadi indeks analisis yang kredibel serta pemodelan simulasi dampak ekonomi.
 
-### Rumus Perhitungan Guncangan Pertumbuhan (GDP Shock Impact)
+### A. Kalibrasi Sinyal & Rekayasa Fitur (Feature Engineering)
+Jika data PDRB Nominal tidak disediakan pengguna dalam lembar kerja, sistem melakukan estimasi menggunakan metode ekstrapolasi regional berbasis sirkulasi fiskal keuangan daerah:
+$$\text{Estimated PDRB Regional} = \text{Revenue} \times 6.5$$
+
+### B. Rumusan Indikator Analisis Keuangan Daerah
+
+#### 1. Indeks Kapasitas Fiskal (Fiscal Capacity Index)
+Mengukur kekuatan kemandirian anggaran daerah dalam mendanai kegiatannya sendiri tanpa tergantung dana transfer luar, diekspresikan dalam skala 0 - 100:
+$$\text{Capacity Score} = \left( \frac{\text{PAD}}{\text{Revenue}} \times 100 \times 1.5 \right) + \left( \left(100 - \frac{\text{Transfer}}{\text{Revenue}} \times 100\right) \times 0.5 \right)$$
+
+#### 2. Skor Stres Fiskal & Klasifikasi Risiko (Fiscal Stress Score)
+Menaksir tingkat kerapuhan struktural keuangan daerah berdasarkan ambang batas peringatan dini keuangan negara. Nilai akhir (0 - 100) diklasifikasikan menjadi empat zona risiko (*Stable, Warning, High Risk, Severe Stress*). Setiap indikator berkontribusi maksimal 25 poin:
+*   **Belanja Pegawai berlebih:** Jika $\frac{\text{Belanja Pegawai}}{\text{Total Belanja}} > 50\%$ (+25 poin); Jika antara $40\% - 50\%$ (+15 poin).
+*   **Kelemahan Basis Pajak:** Jika $\frac{\text{PAD}}{\text{Total Pendapatan}} < 10\%$ (+25 poin); Jika antara $10\% - 20\%$ (+15 poin).
+*   **Kandungan Ketergantungan:** Jika $\frac{\text{Transfer}}{\text{Total Pendapatan}} > 75\%$ (+25 poin); Jika antara $60\% - 75\%$ (+15 poin).
+*   **Tekanan Defisit:** Jika Rasio Defisit terhadap Pendapatan $> 5\%$ (+25 poin); Jika antara $3\% - 5\%$ (+15 poin).
+
+#### 3. Indeks Kesenjangan Pembangunan (Development Gap Index)
+Mengukur tingkat disparitas infrastruktur sosialekonomi lokal berdasarkan rasio belanja pembangunan jaring sosial ekonomi:
+$$\text{Development Gap} = 100 - \left( \frac{\text{Belanja Modal}}{\text{Total Belanja}} \times 100 \times 2 \right) - \left( \frac{\text{Belanja Sosial}}{\text{Populasi}} \times 0.01 \right)$$
+
+### C. Pemodelan Simulasi Ekonometrika: Partial Equilibrium Multiplier Model
+Model di balik simulasi sandbox Fiscalia menggunakan paradigma multiplier fiskal dinamis ber-lag (*Time-lagged Subnational Fiscal Multiplier*) disesuaikan dengan kontributor struktural daerah.
+
+#### 1. Koefisien Multiplier Baseline & Lag Transmisi (Ekonometrika APBD)
+*   **Belanja Modal (Infrastruktur):** Multiplier `+1.4`, Lag `0.35` (Proyek fisik konstruksi membutuhkan waktu konstruksi multi-tahun, berdampak perlahan di tahun dasar).
+*   **Belanja Sosial:** Multiplier `+1.2`, Lag `0.85` (Masyarakat berpendapatan rendah memiliki *Marginal Propensity to Consume (MPC)* tinggi; bantuan langsung meningkatkan konsumsi domestik instan).
+*   **PAD (Pajak Daerah):** Multiplier `-0.6`, Lag `0.70` (Penaikan tarif pajak/retribusi menyedot likuiditas pasar mikro).
+*   **Belanja Pegawai (Gaji/Upah):** Multiplier `-0.3`, Lag `0.50` (Penghematan belanja operasional pegawai menekan daya beli aparatur namun memperluas ruang fiskal modal).
+*   **Dana Transfer Pusat:** Multiplier `-0.2`, Lag `0.40`.
+
+#### 2. Formula Estimasi Dampak Pertumbuhan PDRB (GDP Shock Impact)
+Setiap perubahan guncangan instrumen belanja/pendapatan ($c$) dihitung secara proporsional terhadap PDRB regional nominal dengan mengalibrasi koefisien **Efisiensi Belanja (Efficiency)** dan **Kebocoran Wilayah (Leakage)**:
 $$\text{GDP Impact}_c = \left( \frac{\Delta \text{Fiscal Shock}_c}{\text{PDRB Regional}} \times 100 \right) \times \text{Multiplier}_c \times \text{Lag}_c \times \text{Efficiency} \times (1 - \text{Leakage}) \times \text{Stress Penalty}$$
 
-*Dimana $c$ merepresentasikan kategori instrumen fiskal (Belanja Modal, Sosial, Pegawai, PAD, atau Transfer).*
-
-### Tabel Parameter Rigor Keuangan:
-
-| Instrumen | Multiplier Baseline | Lag Tahun Dasar | Justifikasi Makroekonomi |
-| :--- | :---: | :---: | :--- |
-| **Belanja Modal (Infrastruktur)** | `+1.4` | `0.35` (35%) | Kontrak sipil berjalan multi-tahun, dampak di tahun dasar tertahan lag logistik panjang. |
-| **Belanja Sosial (Transfer Langsung)** | `+1.2` | `0.85` (85%) | Rumah tangga berpendapatan rendah memiliki *Marginal Propensity to Consume (MPC)* tinggi. Dana langsung dibelanjakan untuk komoditas dasar daerah. |
-| **Kenaikan PAD (Pajak Daerah)** | `-0.6` | `0.70` (70%) | Mengurangi daya beli masyarakat lokal dan membatasi sisa kas sirkulasi mikro. |
-| **Belanja Pegawai (Wage Bill)** | `-0.3` | `0.50` (50%) | Efisiensi birokrasi memperbaiki ruang fiskal, namun pemotongan upah menahan konsumsi sekunder dalam wilayah. |
-| **Dana Alokasi Pusat (Transfer)** | `-0.2` | `0.40` (40%) | Variabilitas transfer pusat berdampak langsung pada kelancaran program andalan daerah. |
+*   **Spending Efficiency Index (Koefisien Efisiensi):** Dihitung dinamis (40% - 95%) berdasarkan porsi belanja pegawai dan tingkat pengangguran daerah.
+*   **Regional Leakage Index (Indeks Kebocoran Wilayah):** Ditentukan (15% - 55%) berdasarkan skala demografi penduduk (semakin besar daerah, semakin kecil kebocorannya).
+*   **Stress Penalty:** Jika defisit hasil simulasi melampaui batas regulasi regional **5% dari PDRB**, daya guna multiplier pembangunan dipotong secara otomatis sebesar up to 60% sebagai representasi ketidakpastian iklim ekonomi lokal.
 
 ---
 
-## 6. Skenario Diagnostik & Indikator Risiko Otomatis
+## 5. Jenis dan Komposisi Informasi (Information Architecture)
 
-Aplikasi ini menyajikan visual storytelling melalui indikator risiko real-time:
-*   **Defisit Anggaran terhadap PDRB:** Undang-Undang membatasi defisit daerah. Fiscalia secara dinamis mendeteksi hal ini. Jika simulasi proyeksi defisit melampaui **5.0%**, model secara otomatis mengaktifkan penalti multiplier makro karena adanya ketidakpastian iklim investasi lokal.
-*   **Indeks Penyeimbang Kebijakan (Priority Advisor recommendations):** Menggunakan basis prioritas pintar (*smart priority framework*) untuk menghasilkan arahan kebijakan spesifik yang dapat langsung dipresentasikan pengguna kepala daerah dalam sidang anggaran daerah.
+Fiscalia mengomposisikan data numerik menjadi empat lapis informasi yang disajikan secara hirarkis, kohesif, dan logis:
+
+```
+  [ LAYER 1: EXECUTIVE KPIs ]
+  - Pertumbuhan PDRB Baseline vs Simulasi (%)
+  - Total PAD, Transfer & Pendapatan Daerah (Rupiah)
+  - Desain Anggaran APBD Aktual (Surplus/Defisit)
+             |
+             v
+  [ LAYER 2: DIAGNOSTIC REPORT CARD ]
+  - Evaluasi Struktur Pajak & Retribusi Daerah
+  - Analisis Tingkat Kerawanan Stres Kas Daerah
+  - Analisis Keberlanjutan Risiko Utang Daerah
+             |
+             v
+  [ LAYER 3: DYNAMIC COMPARISON MATRIX ]
+  - Visualisasi "Sebelum vs Sesudah" Intervensi Kebijakan
+  - Skor Risiko Skenario & Indeks Peringatan Bahaya Defisit
+             |
+             v
+  [ LAYER 4: PRIORITY POLICY RECOMMENDATIONS ]
+  - Matriks Rekomendasi Pintar Lengkap dengan Tingkat Prioritas (High/Medium/Low)
+```
+
+1.  **Metrik Utama Eksekutif (Executive KPIs):** Informasi level tinggi mengenai pertumbuhan ekonomi baseline, realisasi APBD keseluruhan, rasio defisit saat ini, penduduk, dan pengangguran.
+2.  **Laporan Diagnostik Analitis (Analyst Insights):** Narasi interpretatif bahasa manusia (dalam bahasa Indonesia) yang menerangkan kesehatan keuangan daerah, efisiensi alokasi, serta tingkat ketergantungan transfer.
+3.  **Matriks Dinamis Komparatif (Comparative Matrix):** Rincian data perubahan angka fiskal pasca simulasi kebijakan (misal: proyeksi surplus/defisit baru, guncangan PDRB bersih, persentase dampak instrumen mikro).
+4.  **Rekomendasi Kebijakan Pintar (Policy Brief Advisors):** Rekomendasi spesifik atas lima aspek pengelolaan anggaran (Kapasitas Fiskal, Belanja Pegawai, Belanja Modal, Manajemen Kas Defisit, Efisiensi Penyerapan SiLPA) dilengkapi dengan tag prioritas beresolusi tinggi.
 
 ---
 
-## 7. Keunggulan Desain untuk Kompetisi (Storytelling Advantage)
+## 6. Teknik Visualisasi (Visualization Mechanics)
 
-Dalam kompetisi *Data Storytelling*, aspek penyajian visual dinamis adalah faktor utama kemenangan. Fiscalia dirancang khusus dengan fitur storytelling berikut:
+Dalam dunia data storytelling, visualisasi adalah media pengantar cerita terbaik. Fiscalia menggunakan pendekatan modern dengan mengadopsi palet warna berkelas (*high-contrast slate-indigo-emerald*) serta grafik responsif interaktif yang tidak menyulitkan mata pengguna:
 
-1.  **Immersive Presets Buttons:** Satu klik mengubah seluruh narasi. Juri kompetisi dapat langsung beralih dari skenario krisis (*austeritas ekstrim*) ke skenario optimis (*Balanced Accelerator*) tanpa perlu memikirkan parameter di belakang layar.
-2.  **Immediate Micro-Metrics Breakdown (Impact Badges):** Menampilkan perombakan persentase pertumbuhan spesifik untuk masing-masing instrumen belanja secara komparatif. Juri dapat langsung memahami pemicu utama kenaikan atau penurunan PDRB.
-3.  **Clean, High-Contrast UI Layout:** Dibangun menggunakan palet warna professional (slate, indigo, emerald) serta visualisasi grafik responsif Recharts yang modern, menjamin daya tarik visual maksimal saat presentasi langsung di depan dewan juri/auditor.
+*   **Visualisasi KPI Ringkasan Eksklusif (Insight Overview Cards):** Menampilkan metrik moneter penting dengan porsi font berukuran besar, label humanis, serta tag indikator arah (panah tren positif/negatif).
+*   **Visualisasi Proporsi Pie Chart (Recharts):** Memetakan fragmentasi penerimaan daerah (PAD vs Transfer) dan pengeluaran daerah (Belanja Pegawai, Modal, Sosial, dll.) secara visual untuk mendeteksi inefisiensi alokasi dengan cepat.
+*   **Visualisasi Grafik Batang Berkelompok (Stacked/Grouped Bar Charts):** Membandingkan secara langsung nilai anggaran ril histori dengan komponen estimasi hasil simulasi kebijakan masa depan.
+*   **Panel Peringatan Masalah Fiskal (Alert & Warning Badges):** Indikator visual bertenaga warna dinamis (Merah/Kuning/Hijau) yang berubah real-time saat pengguna menggeser slider kebijakan di layar kebijakan, merepresentasikan pergerakan batas defisit atau guncangan ekonomi kritis.
+*   **Speedometer Indeks Risiko (Scenario Risk Gauge):** Penunjuk tingkat kerentanan skenario yang disimulasikan dari nilai 0 hingga 100 dengan status predikat lugas (Rendah, Sedang, Tinggi, Kritis).
 
 ---
 
-*Fiscalia merupakan inovasi yang meyakinkan bahwa data fiskal daerah tidak harus dingin dan membosankan. Melalui perpaduan matematika IMF yang solid dan kemudahan interaksi sandbox, Fiscalia adalah jembatan emas bagi masa depan data storytelling kebijakan fiskal subnasional di Indonesia.*
+## 7. Jenis Output yang Dihasilkan (Actionable Deliverables)
+
+Fiscalia memproduksi tiga representasi luaran nyata (*clear artifacts*) yang menjadi andalan pengambil kebijakan dalam ruang konferensi eksekutif:
+
+### A. Live Policy Simulation Sandbox
+Media bermain interaktif real-time di UI perangkat yang langsung menghitung dampak makro secara elastis. Pengguna dapat memilih Preset Skenario populer dengan satu klik cepat:
+1.  **Pro-Infrastruktur:** Menggenjot belanja modal (+25%) dengan membagi beban efisiensi belanja pegawai.
+2.  **Proteksi Sosial:** Meningkatkan asupan jaringan pengaman sosial jaminan perlindungan daerah (+30%).
+3.  **Ekspansi PAD:** Fokus optimalisasi retribusi dan pajak daerah (+15%).
+4.  **Austeritas Ketat:** Melakukan pengetatan masif dan penghematan ketat untuk penyelamatan kas dari ancaman stres defisit berat.
+
+### B. Google Sheets Cloud Synchronizer
+Penyimpanan data yang tangguh dan terorganisir di cloud. Platform secara dinamis membuat spreadsheet baru di Google Drive pengguna, melabeli kolom secara rapi, melakukan transfer data bulk, dan menarik kembali data tersebut ke antarmuka aplikasi dengan sangat cepat secara real-time.
+
+### C. Laporan Briefing Eksekutif PDF Formal (Executive Briefing PDF)
+Dokumen resmi lapor-cetak (*print-ready*) terformat yang diproduksi secara instan melalui klik tombol. Berbeda dari cetak layar mentah (*raw screenshot*), laporan PDF Fiscalia diformulasikan cerdas menggunakan skema kalkulasi multi-page fleksibel yang secara otomatis melakukan pemisahan seimbang (*page-breaking*) apabila konten melebihi batas tinggi kertas A4 standar. Sehingga, dokumen tidak akan terpotong secara kasar (*unformatted cropping*).
+
+Laporan PDF memuat secara komprehensif:
+*   **Nama Daerah & Provinsi resmi.**
+*   **Periode Analisis** yang dipilih (misal: Tahun 2025Q1).
+*   **Metrik Status Indeks Utama** (Skor Stres Fiskal, Indeks Kapasitas Fiskal, Ketergantungan Transfer).
+*   **Narasi Diagnostik Lengkap** Fiscalia yang menyajikan analisis keterpaduan APBD-PDRB berbobot tinggi.
+*   **Hasil Simulasi Kebijakan Mendalam** sesuai opsi Skenario yang sedang dipilih di aplikasi (dilengkapi rincian persentase shock instrumen, parameter efisiensi belanja/kebocoran daerah, proyeksi PDRB, status defisit, peringkat risiko baru, serta rekomendasi penyeimbang fiskal berskala prioritas tinggi/rendah).
+
+---
+
+*Fiscalia membuktikan bahwa data fiskal daerah tidak harus dingin dan membosankan. Melalui pengawinan ekonometrika IMF yang kokoh dengan kemudahan platform sandbox, Fiscalia merupakan langkah emas menuju masa depan perumusan kebijakan subnasional berbasis data riil di Indonesia.*
