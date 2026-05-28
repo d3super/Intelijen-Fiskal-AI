@@ -16,7 +16,8 @@ import {
   TAX_INCREASE_MULTIPLIER,
   PERSONNEL_MULTIPLIER,
   TRANSFER_DEPENDENCY_MULTIPLIER,
-  SimulationResult
+  SimulationResult,
+  MAX_DEFICIT_RATIO
 } from '../utils/fiscalMultiplierModel';
 import { saveCustomScenarioToSheets } from '../services/googleSheets';
 
@@ -360,7 +361,7 @@ export default function PolicySimulation({
             <div>
               <p className="text-xs uppercase tracking-wider font-bold text-indigo-400">4. Penalti Tekanan Fiskal</p>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                Jika tingkat defisit melebihi ambang batas risiko (<span className="text-slate-200">MAX 5% PDRB</span>), nilai multiplier dipotong secara otomatis untuk meniru crowding-out pinjaman daerah.
+                Jika tingkat defisit melebihi ambang batas risiko (<span className="text-slate-200">MAX 3% PDRB</span>), nilai multiplier dipotong secara otomatis untuk meniru crowding-out pinjaman daerah.
               </p>
             </div>
           </div>
@@ -569,7 +570,7 @@ export default function PolicySimulation({
               </div>
               <div className="mt-2 pt-2 border-t border-slate-100 flex justify-between text-[10px] text-slate-400">
                 <span>Rasio Defisit/PDRB:</span>
-                <span className={`font-mono font-bold ${simResult.simulated.deficitRatio > 0.05 ? 'text-rose-600' : 'text-slate-700'}`}>{(simResult.simulated.deficitRatio * 100).toFixed(2)}%</span>
+                <span className={`font-mono font-bold ${simResult.simulated.deficitRatio > MAX_DEFICIT_RATIO ? 'text-rose-600' : 'text-slate-700'}`}>{(simResult.simulated.deficitRatio * 100).toFixed(2)}%</span>
               </div>
             </div>
 

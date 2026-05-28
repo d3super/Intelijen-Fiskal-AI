@@ -20,7 +20,7 @@ export const PERSONNEL_LAG = 0.50;  // Changes in public employment / wages take
 export const TRANSFER_LAG = 0.40;   // Transfer reductions take time to propagate through regional programs
 
 // Target parameters / thresholds
-export const MAX_DEFICIT_RATIO = 0.05; // 5% of GDP acts as a critical subnational deficit warning
+export const MAX_DEFICIT_RATIO = 0.03; // 3% of GDP acts as a critical subnational deficit warning
 export const GROWTH_CEILING = 12.0;    // Real growth above 12% is generally unrealistic for regional economies
 export const GROWTH_FLOOR = -5.0;      // Contraction below -5% triggers systemic crisis warning
 
@@ -193,13 +193,13 @@ export const runFiscalSimulation = (d: RegionalData, scenario: PolicyScenario): 
   if (simDeficitRatio > MAX_DEFICIT_RATIO) {
     warnings.push({
       type: 'critical',
-      title: 'Defisit Melampaui Batas Aman (>5% PDRB)',
+      title: 'Defisit Melampaui Batas Aman (>3% PDRB)',
       description: `Rasio defisit simulasi mencapai ${(simDeficitRatio * 100).toFixed(2)}% dari PDRB. Kondisi ini dapat menurunkan kredibilitas kapasitas bayar utang daerah dan memicu sanksi fiskal.`
     });
-  } else if (simDeficitRatio > 0.03) {
+  } else if (simDeficitRatio > 0.02) {
     warnings.push({
       type: 'warning',
-      title: 'Peningkatan Defisit Sedang (>3% PDRB)',
+      title: 'Peningkatan Defisit Sedang (>2% PDRB)',
       description: `Defisit simulasi bernilai ${(simDeficitRatio * 100).toFixed(2)}% dari PDRB. Dianjurkan memperketat belanja pegawai untuk mengamankan cadangan kas.`
     });
   }

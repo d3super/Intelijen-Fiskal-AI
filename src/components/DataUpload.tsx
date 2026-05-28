@@ -93,6 +93,7 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
             Debt: parseFloat(row.Debt || row.debt) || 0,
             Population: parseInt(row.Population || row.population) || 0,
             Unemployment: parseFloat(row.Unemployment || row.unemployment) || 0,
+            Regional_GDP_Current_Price: parseFloat(row.Regional_GDP_Current_Price || row.regional_gdp_current_price) || undefined,
           }));
           
           resolve(mappedData);
@@ -134,7 +135,7 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
   const downloadTemplate = () => {
     const templateData = [{
       Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2023, Quarter: 'Q1',
-      GDP_Growth: 5.2, Revenue: 80000000, PAD: 55000000, Transfer: 20000000,
+      Regional_GDP_Current_Price: 500000000, GDP_Growth: 5.2, Revenue: 80000000, PAD: 55000000, Transfer: 20000000,
       Expenditure: 75000000, Capital_Expenditure: 20000000, Personnel_Spending: 25000000,
       Social_Spending: 10000000, Fiscal_Balance: 5000000, Debt: 15000000,
       Population: 10500000, Unemployment: 7.5
@@ -325,7 +326,7 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
           </p>
           <ul className="text-sm text-slate-500 space-y-1 list-disc list-inside">
             <li>Region, Province, Year, Quarter (opsional)</li>
-            <li>GDP_Growth, Population, Unemployment</li>
+            <li>Regional_GDP_Current_Price (opsional), GDP_Growth, Population, Unemployment</li>
             <li>Revenue, PAD, Transfer</li>
             <li>Expenditure, Capital_Expenditure</li>
             <li>Personnel_Spending, Social_Spending</li>

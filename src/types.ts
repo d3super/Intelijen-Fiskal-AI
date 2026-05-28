@@ -16,6 +16,7 @@ export interface RegionalData {
   Debt: number;
   Population: number;
   Unemployment: number;
+  Regional_GDP_Current_Price?: number; // Nominal PDRB Riil
   
   // Calculated fields
   Fiscal_Capacity_Index?: number;

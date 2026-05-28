@@ -136,10 +136,10 @@ export default function Glossary() {
             <div className="space-y-3">
               <h3 className="font-medium text-slate-800 text-sm flex items-center"><FileText size={16} className="mr-2 text-slate-400"/> Koreksi Stress Fiskal</h3>
               <div className="bg-slate-50 p-4 rounded-lg font-mono text-xs text-slate-700 overflow-x-auto border border-slate-200 italic tracking-tight">
-                Penalty Drop = Max(0.40, 1.0 - (Defisit Rasio - 0.05) × 6.0)
+                Penalty Drop = Max(0.40, 1.0 - (Defisit Rasio - 0.03) × 6.0)
               </div>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Sebagai rem darurat rasional ekonomi, multiplier akan didiskon bertahap hingga rontok sebesar maksimum 60% jika rasio defisit menabrak perbatasan aman hukum di atas batas konstitusional 5%.
+                Sebagai rem darurat rasional ekonomi, multiplier akan didiskon bertahap hingga rontok sebesar maksimum 60% jika rasio defisit menabrak perbatasan aman hukum di atas batas konstitusional 3%.
               </p>
             </div>
 
@@ -148,7 +148,7 @@ export default function Glossary() {
               <ul className="text-xs text-slate-600 space-y-2 mt-2 list-disc list-inside">
                 <li><strong className="text-slate-800">Growth Ceiling (12%):</strong> Batas atas realistis (dibatasi demi akurasi prediksi komputasi agar tidak meledak eksponensial).</li>
                 <li><strong className="text-slate-800">Growth Floor (-5%):</strong> Batas zona resesi ekstrim pemicu peringatan kritis merah.</li>
-                <li><strong className="text-slate-800">Max Deficit (5%):</strong> Toleransi ambang batas standar defisit subnasional dari produk harga berlaku agregat PDRB.</li>
+                <li><strong className="text-slate-800">Max Deficit (3%):</strong> Toleransi ambang batas standar defisit subnasional dari produk harga berlaku agregat PDRB.</li>
               </ul>
             </div>
           </div>
