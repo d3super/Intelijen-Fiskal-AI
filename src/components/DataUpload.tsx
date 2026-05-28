@@ -150,20 +150,20 @@ export default function DataUpload({ onUpload }: { onUpload: (data: RegionalData
     setUploadStatus('processing');
     setTimeout(() => {
       const sampleData: RegionalData[] = [
-        // 2022 Data
+        // 2025 Data
         {
-          id: 'sample-1-2022-q4', Region: 'Jakarta', Province: 'DKI Jakarta', Year: 2022, Quarter: 'Q4',
-          GDP_Growth: 4.8, Revenue: 75000000, PAD: 50000000, Transfer: 18000000,
-          Expenditure: 70000000, Capital_Expenditure: 18000000, Personnel_Spending: 23000000,
-          Social_Spending: 9000000, Fiscal_Balance: 5000000, Debt: 14000000,
-          Population: 10400000, Unemployment: 8.0
+          id: 'sample-1-2025-q4', Region: 'Provinsi Lampung', Province: 'Lampung', Year: 2025, Quarter: 'Q4',
+          GDP_Growth: 5.54, Revenue: 6316220000000, PAD: 3235820000000, Transfer: 3034380000000,
+          Expenditure: 6179680000000, Capital_Expenditure: 1006820000000, Personnel_Spending: 2568460000000,
+          Social_Spending: 560000000, Fiscal_Balance: 136540000000, Debt: 1800000000000,
+          Population: 9567980, Unemployment: 4.21
         },
         {
-          id: 'sample-2-2022-q4', Region: 'Surabaya', Province: 'Jawa Timur', Year: 2022, Quarter: 'Q4',
-          GDP_Growth: 5.5, Revenue: 9500000, PAD: 4500000, Transfer: 3800000,
-          Expenditure: 9800000, Capital_Expenditure: 2200000, Personnel_Spending: 3800000,
-          Social_Spending: 1300000, Fiscal_Balance: -300000, Debt: 1800000,
-          Population: 2950000, Unemployment: 6.5
+          id: 'sample-2-2025-q4', Region: 'Kota Bandar Lampung', Province: 'Lampung', Year: 2025, Quarter: 'Q4',
+          GDP_Growth: 5.31, Revenue: 2624330000000, PAD: 984830000000, Transfer: 1547230000000,
+          Expenditure: 2164680000000, Capital_Expenditure: 189500000000, Personnel_Spending: 825810000000,
+          Social_Spending: 10180000000, Fiscal_Balance: 459650000000, Debt: 393597478000,
+          Population: 1237630, Unemployment: 7.54
         },
         // 2023 Data (Quarterly for Jakarta)
         {
