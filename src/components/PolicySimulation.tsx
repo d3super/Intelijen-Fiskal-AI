@@ -1,12 +1,15 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { RegionalData, PolicyScenario, CustomScenario } from '../types';
+import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
+import * as htmlToImage from 'html-to-image';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { 
   SlidersHorizontal, ArrowRight, TrendingUp, TrendingDown, Lightbulb, 
   AlertTriangle, CheckCircle2, ShieldAlert, BookOpen, Compass, Info, Award, HelpCircle, X,
-  Save, Cloud, Loader2
+  Save, Cloud, Loader2, Sparkles, FileText
 } from 'lucide-react';
 import { 
   runFiscalSimulation, 
@@ -79,6 +82,192 @@ export default function PolicySimulation({
 
   const [isMethodologyOpen, setIsMethodologyOpen] = useState(false);
   const [isStructModalOpen, setIsStructModalOpen] = useState(false);
+
+  // AI-Powered Policy Brief States
+  const [generatedBrief, setGeneratedBrief] = useState<string | null>(null);
+  const [isBriefLoading, setIsBriefLoading] = useState<boolean>(false);
+  const [briefError, setBriefError] = useState<string | null>(null);
+
+  const handleGenerateBrief = async () => {
+    setIsBriefLoading(true);
+    setBriefError(null);
+    setGeneratedBrief(null);
+    try {
+      const response = await fetch("/api/gemini/generate-brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          regionData,
+          scenario,
+          simResult,
+        }),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Server responded with status ${response.status}`);
+      }
+      const data = await response.json();
+      setGeneratedBrief(data.brief);
+    } catch (error: any) {
+      console.error("Gagal mendapatkan AI Policy Brief:", error);
+      setBriefError(error.message || "Gagal menghubungi model AI atau server.");
+    } finally {
+      setIsBriefLoading(false);
+    }
+  };
+
+  const briefPdfRef = useRef<HTMLDivElement>(null);
+  const [isBriefPdfDownloading, setIsBriefPdfDownloading] = useState(false);
+
+  const [copied, setCopied] = useState(false);
+  const handleCopyBrief = () => {
+    if (!generatedBrief) return;
+    navigator.clipboard.writeText(generatedBrief);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadBrief = async () => {
+    if (!briefPdfRef.current || !generatedBrief) return;
+    setIsBriefPdfDownloading(true);
+    try {
+      const dataUrl = await htmlToImage.toPng(briefPdfRef.current, { 
+        quality: 1.0,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
+
+      const a4Width = 210;
+      const a4Height = 297;
+      const marginX = 15; // 1.5 cm margin kiri/kanan
+      const marginTop = 15; // 1.5 cm margin atas
+      const marginBottom = 15; // 1.5 cm margin bawah
+
+      const printableWidth = a4Width - (marginX * 2); // 180 mm
+      const printableHeight = a4Height - marginTop - marginBottom; // 267 mm
+
+      const container = briefPdfRef.current;
+      const pdfHeight = (container.offsetHeight * printableWidth) / container.offsetWidth;
+      const scale = printableWidth / container.offsetWidth; // mm height per element pixel
+      const printableHeightPx = printableHeight / scale; // Max pixels height per PDF page
+
+      // Collect all child elements inside container to find optimal page splitting lines
+      const directChildren = Array.from(container.children) as HTMLElement[];
+      const blocks: { top: number; height: number; el: HTMLElement }[] = [];
+      const containerRect = container.getBoundingClientRect();
+
+      directChildren.forEach((child) => {
+        if (child.classList.contains('markdown-body')) {
+          const mdChildren = Array.from(child.children) as HTMLElement[];
+          mdChildren.forEach((mdChild) => {
+            const rect = mdChild.getBoundingClientRect();
+            const height = rect.height;
+            if (height > 0) {
+              blocks.push({
+                top: rect.top - containerRect.top,
+                height,
+                el: mdChild
+              });
+            }
+          });
+        } else {
+          const rect = child.getBoundingClientRect();
+          const height = rect.height;
+          if (height > 0) {
+            blocks.push({
+              top: rect.top - containerRect.top,
+              height,
+              el: child
+            });
+          }
+        }
+      });
+
+      // Sort blocks sequentially by their top offset
+      blocks.sort((a, b) => a.top - b.top);
+
+      // Distribute blocks into pages
+      const pages: { startY: number; endY: number }[] = [];
+      
+      if (blocks.length > 0) {
+        let currentPageStart = 0;
+        let pageStartIndex = 0;
+
+        for (let i = 0; i < blocks.length; i++) {
+          const block = blocks[i];
+          const blockEnd = block.top + block.height;
+
+          if (i === pageStartIndex) {
+            continue;
+          }
+
+          if (blockEnd - currentPageStart > printableHeightPx) {
+            // Split before this block to prevent it from getting cut off
+            pages.push({
+              startY: currentPageStart,
+              endY: block.top
+            });
+            currentPageStart = block.top;
+            pageStartIndex = i;
+          }
+        }
+
+        if (currentPageStart < container.offsetHeight) {
+          pages.push({
+            startY: currentPageStart,
+            endY: container.offsetHeight
+          });
+        }
+      } else {
+        // Fallback to simple continuous pagination if no child blocks found
+        let heightLeft = pdfHeight;
+        let index = 0;
+        while (heightLeft > 0) {
+          pages.push({
+            startY: index * printableHeightPx,
+            endY: (index + 1) * printableHeightPx
+          });
+          heightLeft -= printableHeight;
+          index++;
+        }
+      }
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      for (let p = 0; p < pages.length; p++) {
+        if (p > 0) {
+          pdf.addPage();
+        }
+
+        const { startY, endY } = pages[p];
+        
+        // Position full screenshot image so that startY maps to the top margin
+        const position = marginTop - (startY * scale);
+        pdf.addImage(dataUrl, 'PNG', marginX, position, printableWidth, pdfHeight);
+
+        // Render borders/masks for clear 1.5cm margins
+        pdf.setFillColor(255, 255, 255);
+        // Top Mask
+        pdf.rect(0, 0, a4Width, marginTop, 'F');
+        // Bottom Mask
+        pdf.rect(0, a4Height - marginBottom, a4Width, marginBottom, 'F');
+        // Left Mask
+        pdf.rect(0, 0, marginX, a4Height, 'F');
+        // Right Mask
+        pdf.rect(a4Width - marginX, 0, marginX, a4Height, 'F');
+      }
+
+      pdf.save(`AI_Nota_Kebijakan_${regionData.Region}_${regionData.Year}.pdf`);
+    } catch (error) {
+      console.error('Gagal mengekspor PDF policy brief:', error);
+    } finally {
+      setIsBriefPdfDownloading(false);
+    }
+  };
 
   // States for saving custom scenario to Google Sheets
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -698,6 +887,107 @@ export default function PolicySimulation({
             </div>
           </div>
 
+          {/* AI-Powered Policy Brief Generation Panel */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="text-amber-500 animate-pulse" size={20} />
+                <h3 className="text-md font-bold text-slate-800">AI-Powered Policy Brief (Nota Kebijakan Cerdas)</h3>
+              </div>
+              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">GEMINI 3.5 FLASH</span>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Formulasikan nota penjelasan kebijakan eksekutif berstandar formal Kementerian Keuangan RI secara instan. Gemini AI akan menganalisis instrumen simulasi Anda berlandaskan multiplier makroekonomi, kebocoran wilayah, dan kedalaman stres pasar keuangan daerah.
+            </p>
+
+            {briefError && (
+              <div className="p-3 bg-rose-50 text-rose-800 border-l-4 border-rose-500 rounded text-xs flex items-start space-x-2">
+                <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
+                <span>{briefError}</span>
+              </div>
+            )}
+
+            {!generatedBrief && !isBriefLoading && (
+              <button
+                onClick={handleGenerateBrief}
+                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <Sparkles size={16} />
+                <span>Formulasikan Nota Kebijakan (AI Brief)</span>
+              </button>
+            )}
+
+            {isBriefLoading && (
+              <div className="p-8 bg-slate-50 border border-slate-200 rounded-xl space-y-4 flex flex-col items-center justify-center text-center">
+                <Loader2 className="animate-spin text-indigo-600" size={32} />
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-slate-700 animate-pulse">Menghubungkan ke Gemini API...</p>
+                  <p className="text-[10px] text-slate-400 max-w-xs">
+                    Mengevaluasi parameter multi-efek anggaran, limit defisit fisik rill 3%, kebocoran ekonomi, serta menyusun narasi rekomendasi formal.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {generatedBrief && (
+              <div className="space-y-4">
+                {/* Formal Paper Presentation Sheet */}
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 md:p-8 font-sans text-slate-800 relative shadow-inner max-h-[500px] overflow-y-auto">
+                  {/* Watermark/Emblem look */}
+                  <div className="border-b border-double border-slate-400 pb-4 mb-5 flex justify-between items-end">
+                    <div>
+                      <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                        <Sparkles size={12} className="text-amber-500" /> FISCALIA INTEL REPORT
+                      </h4>
+                      <p className="text-[10px] text-slate-400">NOTA PENJELASAN REGIONAL RESMI (AI-ANALYZED)</p>
+                    </div>
+                    <div className="text-right text-[10px] text-slate-400">
+                      <p>Kategori Risiko: <span className="font-bold text-slate-600">{simResult.riskCategory}</span></p>
+                      <p>Waktu Analisis: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                    </div>
+                  </div>
+
+                  {/* Document Content */}
+                  <div className="prose prose-sm max-w-none text-xs text-justify leading-relaxed text-slate-700 space-y-4 markdown-body">
+                    <ReactMarkdown>{generatedBrief}</ReactMarkdown>
+                  </div>
+                </div>
+
+                {/* Document Control Actions */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    onClick={handleCopyBrief}
+                    className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 size={14} className={copied ? "text-emerald-600" : "text-slate-400"} />
+                    <span>{copied ? "Berhasil Disalin!" : "Salin ke Clipboard"}</span>
+                  </button>
+                  <button
+                    onClick={handleDownloadBrief}
+                    disabled={isBriefPdfDownloading}
+                    className="flex-1 py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 disabled:bg-indigo-50/50 disabled:text-indigo-400 text-indigo-700 font-bold rounded-lg text-xs transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    {isBriefPdfDownloading ? (
+                      <Loader2 size={14} className="animate-spin text-indigo-500" />
+                    ) : (
+                      <FileText size={14} className="text-indigo-400" />
+                    )}
+                    <span>{isBriefPdfDownloading ? "Memproses PDF..." : "Unduh Laporan (PDF)"}</span>
+                  </button>
+                  <button
+                    onClick={handleGenerateBrief}
+                    className="py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-700 font-medium rounded-lg text-xs transition-colors flex items-center justify-center space-x-1 cursor-pointer"
+                    title="Formulasikan Ulang"
+                  >
+                    <Sparkles size={12} />
+                    <span>Formulasikan Ulang</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
 
       </div>
@@ -897,6 +1187,74 @@ export default function PolicySimulation({
           </div>
         </div>
       )}
+
+      {/* Hidden layout for Policy Brief PDF Snapshot rendering */}
+      <div className="absolute left-[-9999px] top-[-9999px]">
+        <div ref={briefPdfRef} className="bg-white p-12 w-[800px] text-slate-800 font-sans">
+          {/* Header */}
+          <div className="border-b-4 border-indigo-600 pb-6 mb-8 flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                <Sparkles className="text-indigo-600 animate-pulse" size={28} />
+                <span>AI-Powered Policy Brief</span>
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">Laporan Nota Kebijakan Resmi Regional - Kerja Sama Fiscalia & Gemini AI</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">Dokumen Analisis Cerdas</p>
+              <p className="text-xs text-slate-500">{new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+          </div>
+
+          {/* Metadata Grid */}
+          <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 mb-8 grid grid-cols-2 gap-4 text-xs">
+            <div>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Entitas Regional</p>
+              <p className="text-lg font-extrabold text-slate-800">{regionData.Region}</p>
+              <p className="text-xs text-slate-500">{regionData.Province}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Periode & Kategori Risiko</p>
+              <p className="text-lg font-extrabold text-slate-800">{regionData.Year} {regionData.Quarter || ''}</p>
+              <p className="text-xs text-slate-500 text-rose-600">Risiko Skenario: <span className="font-bold">{simResult.riskCategory}</span></p>
+            </div>
+          </div>
+
+          {/* Parameter Shock & Simulation Highlights */}
+          <div className="grid grid-cols-2 gap-6 mb-8 text-xs border-b border-slate-100 pb-5">
+            <div>
+              <p className="font-bold text-slate-800 mb-2 uppercase tracking-wide text-[10px]">Parameter Simulasi yang Diuji:</p>
+              <ul className="text-slate-600 space-y-1 list-disc pl-4">
+                <li>Peningkatan PAD: +{scenario.padIncrease}%</li>
+                <li>Pengurangan Transfer: -{scenario.transferDecrease}%</li>
+                <li>Belanja Modal: +{scenario.capitalExpIncrease}%</li>
+                <li>Belanja Pegawai: -{scenario.personnelExpDecrease}%</li>
+                <li>Belanja Sosial: +{scenario.socialExpIncrease}%</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-bold text-slate-800 mb-2 uppercase tracking-wide text-[10px]">Hasil Proyeksi Utama:</p>
+              <ul className="text-slate-600 space-y-1 list-disc pl-4">
+                <li>Proyeksi Pertumbuhan PDRB: <span className="font-bold text-indigo-600">{simResult.simulated?.gdpGrowth?.toFixed(2)}%</span> (Baseline: {simResult.baseline?.gdpGrowth?.toFixed(2)}%)</li>
+                <li>Keseimbangan Fiskal Baru: <span className="font-bold text-slate-800">Rp {simResult.simulated?.balance?.toLocaleString("id-ID")}</span></li>
+                <li>Indeks Efisiensi Belanja: {(simResult.metrics?.spendingEfficiency * 100).toFixed(1)}%</li>
+                <li>Kebocoran Keluar Wilayah: {(simResult.metrics?.regionalLeakage * 100).toFixed(1)}%</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Main Brief Content (Markdown) */}
+          <div className="prose prose-sm max-w-none text-xs text-justify leading-relaxed text-slate-800 space-y-4 markdown-body">
+            <ReactMarkdown>{generatedBrief || ""}</ReactMarkdown>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-12 pt-4 border-t border-slate-200 text-center text-[10px] text-slate-400">
+            <p>Laporan ini digenerasikan secara otomatis oleh mesin analitik kecerdasan buatan Fiscalia menggunakan Gemini 3.5 Flash.</p>
+            <p className="mt-0.5">Seluruh proyeksi bersifat indikatif berdasarkan elastisitas model pengganda fiskal daerah.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

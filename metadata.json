@@ -1,5 +1,6 @@
 {
   "name": "Fiscalia",
   "description": "AI-powered regional fiscal monitoring and fiscal risk detection platform.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

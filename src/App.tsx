@@ -21,7 +21,7 @@ import FiscalAnalysis from './components/FiscalAnalysis';
 import PolicySimulation from './components/PolicySimulation';
 import Glossary from './components/Glossary';
 import ScenarioLibrary from './components/ScenarioLibrary';
-import { RegionalData } from './types';
+import { RegionalData, CustomScenario } from './types';
 import jsPDF from 'jspdf';
 import * as htmlToImage from 'html-to-image';
 import { getFromGoogleSheets, saveToGoogleSheetsBulk } from './services/googleSheets';
@@ -36,7 +36,7 @@ export default function App() {
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<string | CustomScenario | null>(null);
   
   // Auth & Sync state
   const [isLoading, setIsLoading] = useState(true);
