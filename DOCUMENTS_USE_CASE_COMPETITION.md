@@ -162,4 +162,21 @@ Laporan PDF memuat secara komprehensif:
 
 ---
 
+## 8. Alur Simulasi Penggunaan Aplikasi Fiscalia (Simulation Workflow)
+
+Berikut adalah tabel alur kerja penggunaan aplikasi Fiscalia secara komprehensif, mulai dari persiapan dan pengunggahan data fiskal daerah hingga penyerahan laporan eksekutif kepada pengambil keputusan:
+
+| Tahap | Aktivitas Pengguna | Tanggapan / Proses Sistem | Keluaran (Output) / Hasil Riil |
+| :---: | :--- | :--- | :--- |
+| **1** | **Persiapan & Penggunduhan Template** <br> Mengunduh berkas template masukan APBD di halaman "Unggah Data". | Mengunduh berkas Excel (`template_fiskal.xlsx`) yang terstruktur fungsional dengan kolom variabel opsional `Regional_GDP_Current_Price`. | Berkas Excel template standardisasi APBD yang siap diisi secara mandiri. |
+| **2** | **Unggah & Validasi Berkas** <br> Mengunggah data fiskal realisasi APBD daerah yang telah disiapkan (misal: Lampung 2025). | Memparsing berkas, mengekstrak variabel utama, melakukan estimasi otomatis PDRB Riil jika kosong (`Revenue * 6.5`), dan menuangkan data ke dashboard. | Data realisasi teragregat siap dianalisis dan divisualisasikan secara dinamis. |
+| **3** | **Sinkronisasi Cloud (Opsional)** <br> Menghubungkan Google Account melalui integrasi OAuth dan Firebase. | Mengaktifkan pembuatan dan penarikan sheet digital tepercaya untuk merekam skenario simulasi kustom. | Persistensi data tak-terbatas di Google Sheets milik pengguna secara langsung. |
+| **4** | **Analisis Diagnostik & Monitoring** <br> Menelaah panel visualisasi visual proporsi anggaran dan laporan diagnosa. | Menghitung mandiri Indeks Kapasitas Fiskal, Indeks Kesenjangan Pembangunan, dan Skor Stres Fiskal (dengan batas waspada defisit 3%). | Ringkasan analisa interpretatif bahasa manusia (bahasa Indonesia) dan status visual tingkat risiko. |
+| **5** | **Simulasi Interaktif Sandbox** <br> Menyesuaikan slider instrumen APBD (Belanja Modal, Sosial, Pegawai, dll.) atau memicu Preset Kebijakan. | Mengkalkulasi getaran makroekonomi regional baru pasca-shock secara elastis menggunakan Partial Equilibrium Multiplier Model terlag. | Proyeksi tingkat pertumbuhan ekonomi regional serta saldo/rasio defisit APBD baru yang diperbarui instan. |
+| **6** | **Rekomendasi Cerdas Otomatis** <br> Mengamati perubahan rekomendasi taktis pada panel saran penyeimbang fiskal. | Mengevaluasi status kelayakan defisit simulasi baru, menerapkan stress penalti (diskon multiplier) jika tabrakan defisit mencapai >3% PDRB, serta memicu 5 rekomendasi fiskal prioritas. | Daftar saran mitigasi struktural berdasar rujukan ilmiah dilengkapi tag tingkat prioritas (*High, Medium, Low*). |
+| **7** | **Perekaman Skenario Kustom** <br> Menyimpan konfigurasi slider kebijakan ke Google Sheets. | Merekam data setup numerik ke dalam spreadsheet digital cloud pengguna sebagai skenario tersimpan. | Preset Skenario Kustom bertambah di panel pustaka yang dapat dipanggil kapan saja. |
+| **8** | **Pembangkitan Policy Brief PDF** <br> Mengklik tombol "Ekspor PDF" di panel simulasi. | Memformat tata letak laporan formal cetak, menerapkan algoritma pemisah halaman cerdas (tidak memotong baris teks kasar), dan menyajikan visualisasi data ringkas. | Dokumen resmi Laporan Briefing Eksekutif PDF 1-2 halaman terformat rapi untuk diserahkan ke Kepala Daerah. |
+
+---
+
 *Fiscalia membuktikan bahwa data fiskal daerah tidak harus dingin dan membosankan. Melalui pengawinan ekonometrika IMF yang kokoh dengan kemudahan platform sandbox, Fiscalia merupakan langkah emas menuju masa depan perumusan kebijakan subnasional berbasis data riil di Indonesia.*

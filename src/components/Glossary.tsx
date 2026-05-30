@@ -153,6 +153,103 @@ export default function Glossary() {
             </div>
           </div>
         </div>
+
+        {/* Section 4: Alur Simulasi dan Penggunaan */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm md:col-span-2 space-y-4">
+          <div className="flex items-center space-x-3 mb-2">
+            <BookOpen className="text-emerald-500" size={24} />
+            <h2 className="text-lg font-semibold text-slate-800">Alur Kerja Penggunaan Aplikasi (Workflow Use Case)</h2>
+          </div>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Berikut adalah tahapan fungsional pengoperasian Fiscalia dari fase persiapan data mentah hingga penyerahan rekomendasi taktis berkualifikasi kebijakan kepada pimpinan eksekutif daerah:
+          </p>
+          <div className="overflow-x-auto border border-slate-100 rounded-lg">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-3 font-semibold text-slate-700 text-center w-12">Tahap</th>
+                  <th className="p-3 font-semibold text-slate-700">Aktivitas Pengguna</th>
+                  <th className="p-3 font-semibold text-slate-700">Proses / Reaksi Sistem</th>
+                  <th className="p-3 font-semibold text-slate-700">Keluaran (Output) Riil</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-600">
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">1</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Persiapan &amp; Unduh Template</strong>
+                    Mengunduh berkas standardisasi APBD di menu "Unggah Data".
+                  </td>
+                  <td className="p-3">Menghasilkan berkas Excel terstruktur (`template_fiskal.xlsx`) dengan format baris input yang tervalidasi lengkap dengan opsional PDRB Riil Baru.</td>
+                  <td className="p-3 font-mono text-indigo-600">template_fiskal.xlsx</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">2</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Unggah &amp; Validasi</strong>
+                    Mengunggah APBD atau PDRB wilayah (drag-and-drop / klik manual).
+                  </td>
+                  <td className="p-3">Mengekstrak data, mencocokkan field, dan jika PDRB Riil kosong, mengaktivasi estimasi otomatis <code>PDRB = Revenue × 6.5</code>.</td>
+                  <td className="p-3 font-semibold text-emerald-600">Realisasi Baseline Masuk</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">3</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Kombinasi Cloud (OAuth)</strong>
+                    Otentikasi dengan Google Account &amp; Firebase.
+                  </td>
+                  <td className="p-3">Membuat dan menyinkronkan data APBD secara instan ke dalam struktur Google Sheets privat milik pengguna.</td>
+                  <td className="p-3 font-semibold text-indigo-600">Real-time Cloud Sync</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">4</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Monitoring Diagnostik</strong>
+                    Menelaah kesehatan finansial daerah pada dasbor analitis.
+                  </td>
+                  <td className="p-3">Menghitung Indeks Kapasitas Fiskal, Indeks Kesenjangan Pembangunan, dan Skor Stres Fiskal (toleransi defisit 3%).</td>
+                  <td className="p-3">Status Risiko &amp; Analisis Naratif</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">5</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Simulasi Sandbox Skenario</strong>
+                    Menyesuaikan slider belanja/pendapatan APBD atau klik Preset Kebijakan.
+                  </td>
+                  <td className="p-3">Menghitung elastisitas dampak makro terhadap PDRB secara real-time via Partial Equilibrium Multiplier Model terlag.</td>
+                  <td className="p-3 font-semibold text-slate-800">Proyeksi PDRB &amp; Defisit Baru</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">6</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Rekomendasi Cerdas</strong>
+                    Menginspeksi modul penyeimbang keuangan dan rincian risiko.
+                  </td>
+                  <td className="p-3">Mendeteksi tabrakan batas aturan (defisit &gt; 3%), memberikan penalti diskon multiplier, serta meregenerasi 5 saran prioritas.</td>
+                  <td className="p-3 text-amber-600 font-semibold">Priority Strategy Matrix</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">7</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Penyimpanan Otomatis</strong>
+                    Menyimpan skenario hasil temuan simulasi pimpinan ke Sheets.
+                  </td>
+                  <td className="p-3">Mencatat data parameter slider kustom langsung ke awan Google Sheets secara dinamis.</td>
+                  <td className="p-3 font-semibold text-indigo-600">Daftar Pustaka Skenario Kustom</td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="p-3 font-bold text-center text-slate-800 bg-slate-50/30">8</td>
+                  <td className="p-3">
+                    <strong className="text-slate-800 block mb-0.5">Ekspor Policy Brief PDF</strong>
+                    Mengeklik tombol simulasikan cetak dokumen eksekutif.
+                  </td>
+                  <td className="p-3">Menghasilkan draf Policy Brief 1-2 halaman yang rapi dengan sistem page-break cerdas antarkertas A4 (antiterpotong acak).</td>
+                  <td className="p-3 text-red-600 font-bold font-mono">Formal Briefing PDF</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
