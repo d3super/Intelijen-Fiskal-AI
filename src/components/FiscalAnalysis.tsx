@@ -95,13 +95,17 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
       });
 
       if (!response.ok) {
-        throw new Error('Gagal berkomunikasi dengan server untuk membuat diagnosis AI.');
+        let serverErrorMsg = 'Gagal berkomunikasi dengan server untuk membuat diagnosis AI.';
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            serverErrorMsg = errData.error;
+          }
+        } catch (_) {}
+        throw new Error(serverErrorMsg);
       }
 
       const resData = await response.json();
-      if (resData.error) {
-        throw new Error(resData.error);
-      }
       setAiReport(resData.diagnostic || '');
     } catch (err: any) {
       console.error(err);

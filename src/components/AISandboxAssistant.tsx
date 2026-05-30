@@ -90,7 +90,12 @@ Ada yang bisa saya bantu hari ini? Anda juga bisa menggunakan tombol pertanyaan 
         : (data.length > 0 ? data[0] : null);
 
       // Map to Gemini expected format: list of messages with role/parts
-      const apiMessages = messages.concat(userMessage).map(msg => ({
+      // Filter out any leading 'model' messages (like the welcome message) to satisfy the Gemini system requirement
+      const fullHistory = messages.concat(userMessage);
+      const firstUserIndex = fullHistory.findIndex(m => m.role === 'user');
+      const validHistory = firstUserIndex !== -1 ? fullHistory.slice(firstUserIndex) : [userMessage];
+
+      const apiMessages = validHistory.map(msg => ({
         role: msg.role,
         parts: [{ text: msg.text }]
       }));
@@ -106,7 +111,14 @@ Ada yang bisa saya bantu hari ini? Anda juga bisa menggunakan tombol pertanyaan 
       });
 
       if (!response.ok) {
-        throw new Error('Gagal berkomunikasi dengan asisten.');
+        let serverErrorMsg = 'Gagal berkomunikasi dengan asisten.';
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) {
+            serverErrorMsg = errData.error;
+          }
+        } catch (_) {}
+        throw new Error(serverErrorMsg);
       }
 
       const resData = await response.json();
@@ -122,7 +134,9 @@ Ada yang bisa saya bantu hari ini? Anda juga bisa menggunakan tombol pertanyaan 
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'model',
-        text: `⚠️ **Gagal terhubung dengan server AI**: ${error.message || 'Silakan coba lagi beberapa saat.'}`,
+        text: error.message && error.message.includes('**') 
+          ? error.message 
+          : `⚠️ **Gagal terhubung dengan server AI**:\n\n${error.message || 'Silakan coba lagi beberapa saat.'}`,
         timestamp: new Date(),
       }]);
     } finally {

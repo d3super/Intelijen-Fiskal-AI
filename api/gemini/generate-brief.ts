@@ -21,6 +21,24 @@ function getGenAI() {
   return aiClient;
 }
 
+function formatGeminiError(error: any): string {
+  const errMsg = error?.message || "";
+  const errStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
+
+  if (
+    errMsg.includes("quota") || 
+    errMsg.includes("RESOURCE_EXHAUSTED") || 
+    errMsg.includes("429") ||
+    errStr.includes("quota") ||
+    errStr.includes("RESOURCE_EXHAUSTED") ||
+    errStr.includes("429")
+  ) {
+    return "⚠️ **Batas Kuota Layanan Tercapai (Quota Exceeded)**\n\nMaaf, batas kuota harian dari layanan cerdas Google Gemini API (Free Tier) untuk aplikasi ini telah tercapai (maksimum 20 permintaan per hari).\n\n**Solusi:**\n1. Harap tunggu beberapa beberapa saat agar kuota direset oleh sistem.\n2. Jika Anda memasang aplikasi ini secara mandiri, masukkan `GEMINI_API_KEY` berbayar Anda pada pengaturan Environment Variables.";
+  }
+
+  return errMsg || "Terjadi kegagalan komunikasi dengan model AI Gemini.";
+}
+
 export default async function handler(req: Request, res: Response) {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -127,6 +145,6 @@ Hindari kata-kata generik. Tuliskan analisis dengan nada tajam, tegas, dan berbo
     res.json({ brief: response.text });
   } catch (error: any) {
     console.error("Vercel Serverless Function Error /generate-brief:", error);
-    res.status(500).json({ error: error.message || "Terjadi kegagalan komunikasi dengan model AI Gemini." });
+    res.status(500).json({ error: formatGeminiError(error) });
   }
 }

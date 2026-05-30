@@ -23,6 +23,24 @@ function getGenAI() {
   return aiClient;
 }
 
+function formatGeminiError(error: any): string {
+  const errMsg = error?.message || "";
+  const errStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
+
+  if (
+    errMsg.includes("quota") || 
+    errMsg.includes("RESOURCE_EXHAUSTED") || 
+    errMsg.includes("429") ||
+    errStr.includes("quota") ||
+    errStr.includes("RESOURCE_EXHAUSTED") ||
+    errStr.includes("429")
+  ) {
+    return "⚠️ **Batas Kuota Layanan Tercapai (Quota Exceeded)**\n\nMaaf, batas kuota harian dari layanan cerdas Google Gemini API (Free Tier) untuk aplikasi ini telah tercapai (maksimum 20 permintaan per hari).\n\n**Solusi:**\n1. Harap tunggu beberapa beberapa saat agar kuota direset oleh sistem.\n2. Jika Anda memasang aplikasi ini secara mandiri, masukkan `GEMINI_API_KEY` berbayar Anda pada pengaturan Environment Variables.";
+  }
+
+  return errMsg || "Terjadi kegagalan komunikasi dengan model AI Gemini.";
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -289,6 +307,17 @@ Gunakan bahasa ekonomi pembangunan mikro dan makro yang meyakinkan, padat, berbo
         return;
       }
 
+      // Sanitize messages to make sure it always starts with 'user' role
+      let sanitizedMessages = [...messages];
+      while (sanitizedMessages.length > 0 && sanitizedMessages[0].role === 'model') {
+        sanitizedMessages.shift();
+      }
+
+      if (sanitizedMessages.length === 0) {
+        res.status(400).json({ error: "Percakapan tidak memiliki pesan dari user." });
+        return;
+      }
+
       const ai = getGenAI();
 
       // We inject context about the current active region or loaded regions
@@ -332,7 +361,7 @@ Gunakan informasi konteks di atas untuk memberikan respons yang sangat relevan. 
 
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
-        contents: messages,
+        contents: sanitizedMessages,
         config: {
           systemInstruction,
           temperature: 0.7,
@@ -342,7 +371,7 @@ Gunakan informasi konteks di atas untuk memberikan respons yang sangat relevan. 
       res.json({ reply: response.text });
     } catch (error: any) {
       console.error("Gemini Assistant Chat API Error:", error);
-      res.status(500).json({ error: error.message || "Terjadi kegagalan komunikasi dengan model AI Gemini." });
+      res.status(500).json({ error: formatGeminiError(error) });
     }
   });
 

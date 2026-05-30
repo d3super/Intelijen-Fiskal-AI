@@ -21,6 +21,24 @@ function getGenAI() {
   return aiClient;
 }
 
+function formatGeminiError(error: any): string {
+  const errMsg = error?.message || "";
+  const errStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
+
+  if (
+    errMsg.includes("quota") || 
+    errMsg.includes("RESOURCE_EXHAUSTED") || 
+    errMsg.includes("429") ||
+    errStr.includes("quota") ||
+    errStr.includes("RESOURCE_EXHAUSTED") ||
+    errStr.includes("429")
+  ) {
+    return "⚠️ **Batas Kuota Layanan Tercapai (Quota Exceeded)**\n\nMaaf, batas kuota harian dari layanan cerdas Google Gemini API (Free Tier) untuk aplikasi ini telah tercapai (maksimum 20 permintaan per hari).\n\n**Solusi:**\n1. Harap tunggu beberapa beberapa saat agar kuota direset oleh sistem.\n2. Jika Anda memasang aplikasi ini secara mandiri, masukkan `GEMINI_API_KEY` berbayar Anda pada pengaturan Environment Variables.";
+  }
+
+  return errMsg || "Terjadi kegagalan komunikasi dengan model AI Gemini.";
+}
+
 export default async function handler(req: Request, res: Response) {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -46,6 +64,17 @@ export default async function handler(req: Request, res: Response) {
 
     if (!messages || !Array.isArray(messages)) {
       res.status(400).json({ error: "Kolom 'messages' kosong atau format tidak valid." });
+      return;
+    }
+
+    // Sanitize messages to make sure it always starts with 'user' role
+    let sanitizedMessages = [...messages];
+    while (sanitizedMessages.length > 0 && sanitizedMessages[0].role === 'model') {
+      sanitizedMessages.shift();
+    }
+
+    if (sanitizedMessages.length === 0) {
+      res.status(400).json({ error: "Percakapan tidak memiliki pesan dari user." });
       return;
     }
 
@@ -92,7 +121,7 @@ Gunakan informasi konteks di atas untuk memberikan respons yang sangat relevan. 
 
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: messages,
+      contents: sanitizedMessages,
       config: {
         systemInstruction,
         temperature: 0.7,
@@ -102,6 +131,6 @@ Gunakan informasi konteks di atas untuk memberikan respons yang sangat relevan. 
     res.json({ reply: response.text });
   } catch (error: any) {
     console.error("Vercel Serverless Function Error /chat-assistant:", error);
-    res.status(500).json({ error: error.message || "Terjadi kegagalan komunikasi dengan model AI Gemini." });
+    res.status(500).json({ error: formatGeminiError(error) });
   }
 }
