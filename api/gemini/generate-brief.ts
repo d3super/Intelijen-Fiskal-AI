@@ -100,10 +100,18 @@ Nota Kebijakan (Policy Brief) WAJIB mengikuti sistematika terstruktur dan runtut
 4. **PERMASALAHAN** (Uraian tantangan fiskal nyata seperti inefisiensi pengadaan belanja, risiko kebocoran regional, atau keterbatasan ruang fiskal subnasional untuk ekspansi).
 5. **TEMUAN UTAMA** (Pemaparan metrik diagnostik inti seperti Indeks Efisiensi Belanja: ${(simResult.metrics?.spendingEfficiency * 100).toFixed(1)}%, Indeks Kebocoran Keluar Wilayah: ${(simResult.metrics?.regionalLeakage * 100).toFixed(1)}%, skor stres fiskal baseline, serta elastisitas multiplier aslinya sebelum shock).
 6. **OPSI KEBIJAKAN** (Pilihan-pilihan skenario instrumen penyeimbang yang diuji, misalnya realokasi belanja pegawai ke belanja produktif atau optimalisasi PAD).
-7. **SIMULASI DAMPAK** (Analisis mendalam mengenai dampak kuantitatif dari shock skenario terpilih terhadap tingkat pertumbuhan PDRB riil regional: ${simResult.simulated?.gdpGrowth?.toFixed(2)}% vs baseline ${simResult.baseline?.gdpGrowth?.toFixed(2)}%, dan proyeksi nominal sisa anggaran atau defisit daerah baru).
-8. **REKOMENDASI** (Butir-butir nasihat strategis konkret operasional berdasar prioritas instrumen belanja yang efisien dan mitigasi kebocoran likuiditas dana).
-9. **RISIKO DAN MITIGASI** (Analisis stres-test terhadap risiko pelanggaran ambang batas aturan defisit 3,00% PDRB, potensi crowding-out multiplier jika defisit terlampaui, serta langkah mitigasinya menggunakan instrumen seperti SiLPA atau penataan ulang belanja).
-10. **KESIMPULAN** (Sari akhir keputusan taktis apakah opsi kebijakan atau skenario simulasi ini layak direkomendasikan langsung untuk diadopsi menjadi produk hukum APBD atau kebijakan strategis kepala daerah).
+7. **SIMULASI DAMPAK MAKRO** (Analisis mendalam mengenai dampak kuantitatif dari shock skenario terpilih terhadap tingkat pertumbuhan PDRB riil regional: ${simResult.simulated?.gdpGrowth?.toFixed(2)}% vs baseline ${simResult.baseline?.gdpGrowth?.toFixed(2)}%, dan proyeksi nominal sisa anggaran atau defisit daerah baru).
+8. **MATRIKS KOMPROMI KEBIJAKAN & SOSIAL-EKONOMI (SOCIOECONOMIC TRADE-OFFS)** (Uraikan secara analitis kompromi/pengorbanan langsung demi mendapatkan stimulasi pertumbuhan ekonomi tersebut:
+   - Jika Belanja Pembangunan (Modal) naik pesat, analisislah komprominya seperti pengorbanan jaring pengaman sosial, beban utang, atau likuiditas kas daerah jangka pendek.
+   - Jika Belanja Pegawai diturunkan drastis demi efisiensi, ulas komprominya secara jujur seperti demotivasi ASN daerah, penyesuaian kualitas layanan gawat darurat/publik, atau sirkulasi konsumsi lokal.
+   - Jika PAD dinaikkan tinggi via intensifikasi pajak/retribusi daerah, ulas komprominya bagi beban usaha/UMKM dan gairah investasi regional).
+9. **INDEKS ESTIMASI SOSIAL-EKONOMI (AI-SCORECARD)** (Berikan taksiran indeks kuantitatif pro-rata skala 0-100 untuk parameter:
+   - **Indeks Ketahanan Sosial (Social Resilience Index)**: Tingkat jaring pengaman sosial.
+   - **Indeks Tekanan Dunia Usaha (Business Stress Index)**: Tingkat hambatan usaha dari kontribusi PAD.
+   - **Indeks Kualitas Pelayanan Publik (Public Service Potential)**: Efektivitas operasional layanan publik per-kapita).
+10. **REKOMENDASI PENGAMAN SOSIAL-EKONOMI (SOCIOECONOMIC SAFEGUARDS)** (Butir-butir penyeimbang/offset strategis konkret operasional untuk meminimalisir kompromi negatif yang teridentifikasi).
+11. **ANALISIS RISIKO ATURAN DEFISIT** (Analisis stres-test terhadap risiko pelanggaran ambang batas aturan defisit 3,00% PDRB, potensi crowding-out multiplier jika defisit terlampaui, serta langkah mitigasinya menggunakan instrumen seperti SiLPA atau penataan ulang belanja).
+12. **KESIMPULAN** (Sari akhir keputusan taktis apakah opsi kebijakan atau skenario simulasi ini layak direkomendasikan langsung untuk diadopsi menjadi produk hukum APBD atau kebijakan strategis kepala daerah).
 
 Hindari kata-kata generik. Tuliskan analisis dengan nada tajam, tegas, dan berbobot akademis.
 `;

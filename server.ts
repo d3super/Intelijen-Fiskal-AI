@@ -90,10 +90,18 @@ Nota Kebijakan (Policy Brief) WAJIB mengikuti sistematika terstruktur dan runtut
 4. **PERMASALAHAN** (Uraian tantangan fiskal nyata seperti inefisiensi pengadaan belanja, risiko kebocoran regional, atau keterbatasan ruang fiskal subnasional untuk ekspansi).
 5. **TEMUAN UTAMA** (Pemaparan metrik diagnostik inti seperti Indeks Efisiensi Belanja: ${(simResult.metrics?.spendingEfficiency * 100).toFixed(1)}%, Indeks Kebocoran Keluar Wilayah: ${(simResult.metrics?.regionalLeakage * 100).toFixed(1)}%, skor stres fiskal baseline, serta elastisitas multiplier aslinya sebelum shock).
 6. **OPSI KEBIJAKAN** (Pilihan-pilihan skenario instrumen penyeimbang yang diuji, misalnya realokasi belanja pegawai ke belanja produktif atau optimalisasi PAD).
-7. **SIMULASI DAMPAK** (Analisis mendalam mengenai dampak kuantitatif dari shock skenario terpilih terhadap tingkat pertumbuhan PDRB riil regional: ${simResult.simulated?.gdpGrowth?.toFixed(2)}% vs baseline ${simResult.baseline?.gdpGrowth?.toFixed(2)}%, dan proyeksi nominal sisa anggaran atau defisit daerah baru).
-8. **REKOMENDASI** (Butir-butir nasihat strategis konkret operasional berdasar prioritas instrumen belanja yang efisien dan mitigasi kebocoran likuiditas dana).
-9. **RISIKO DAN MITIGASI** (Analisis stres-test terhadap risiko pelanggaran ambang batas aturan defisit 3,00% PDRB, potensi crowding-out multiplier jika defisit terlampaui, serta langkah mitigasinya menggunakan instrumen seperti SiLPA atau penataan ulang belanja).
-10. **KESIMPULAN** (Sari akhir keputusan taktis apakah opsi kebijakan atau skenario simulasi ini layak direkomendasikan langsung untuk diadopsi menjadi produk hukum APBD atau kebijakan strategis kepala daerah).
+7. **SIMULASI DAMPAK MAKRO** (Analisis mendalam mengenai dampak kuantitatif dari shock skenario terpilih terhadap tingkat pertumbuhan PDRB riil regional: ${simResult.simulated?.gdpGrowth?.toFixed(2)}% vs baseline ${simResult.baseline?.gdpGrowth?.toFixed(2)}%, dan proyeksi nominal sisa anggaran atau defisit daerah baru).
+8. **MATRIKS KOMPROMI KEBIJAKAN & SOSIAL-EKONOMI (SOCIOECONOMIC TRADE-OFFS)** (Uraikan secara analitis kompromi/pengorbanan langsung demi mendapatkan stimulasi pertumbuhan ekonomi tersebut:
+   - Jika Belanja Pembangunan (Modal) naik pesat, analisislah komprominya seperti pengorbanan jaring pengaman sosial, beban utang, atau likuiditas kas daerah jangka pendek.
+   - Jika Belanja Pegawai diturunkan drastis demi efisiensi, ulas komprominya secara jujur seperti demotivasi ASN daerah, penyesuaian kualitas layanan gawat darurat/publik, atau sirkulasi konsumsi lokal.
+   - Jika PAD dinaikkan tinggi via intensifikasi pajak/retribusi daerah, ulas komprominya bagi beban usaha/UMKM dan gairah investasi regional).
+9. **INDEKS ESTIMASI SOSIAL-EKONOMI (AI-SCORECARD)** (Berikan taksiran indeks kuantitatif pro-rata skala 0-100 untuk parameter:
+   - **Indeks Ketahanan Sosial (Social Resilience Index)**: Tingkat jaring pengaman sosial.
+   - **Indeks Tekanan Dunia Usaha (Business Stress Index)**: Tingkat hambatan usaha dari kontribusi PAD.
+   - **Indeks Kualitas Pelayanan Publik (Public Service Potential)**: Efektivitas operasional layanan publik per-kapita).
+10. **REKOMENDASI PENGAMAN SOSIAL-EKONOMI (SOCIOECONOMIC SAFEGUARDS)** (Butir-butir penyeimbang/offset strategis konkret operasional untuk meminimalisir kompromi negatif yang teridentifikasi).
+11. **ANALISIS RISIKO ATURAN DEFISIT** (Analisis stres-test terhadap risiko pelanggaran ambang batas aturan defisit 3,00% PDRB, potensi crowding-out multiplier jika defisit terlampaui, serta langkah mitigasinya menggunakan instrumen seperti SiLPA atau penataan ulang belanja).
+12. **KESIMPULAN** (Sari akhir keputusan taktis apakah opsi kebijakan atau skenario simulasi ini layak direkomendasikan langsung untuk diadopsi menjadi produk hukum APBD atau kebijakan strategis kepala daerah).
 
 Hindari kata-kata generik. Tuliskan analisis dengan nada tajam, tegas, dan berbobot akademis.
 `;
@@ -175,6 +183,98 @@ Gunakan bahasa yang tegas, kritis, solutif, dan objektif tanpa basa-basi pemasar
       res.json({ diagnostic: response.text });
     } catch (error: any) {
       console.error("Gemini Diagnostic API Error in server.ts:", error);
+      res.status(500).json({ error: error.message || "Terjadi kegagalan komunikasi dengan model AI Gemini." });
+    }
+  });
+
+  // API: AI Socioeconomic Trade-off Predictor
+  app.post("/api/gemini/generate-tradeoff", async (req, res) => {
+    try {
+      const { regionData, scenario, simResult } = req.body;
+
+      if (!regionData || !scenario || !simResult) {
+        res.status(400).json({ error: "Missing required simulation data inside request body." });
+        return;
+      }
+
+      const ai = getGenAI();
+
+      const promptString = `
+Anda adalah seorang Ahli Ekonom Senior Ekonomi Pembangunan PBB (UNDP) dan Spesialis Analisis Kebijakan Publik Berkelanjutan.
+Tugas Anda adalah melakukan kajian riset mendalam bertajuk "AI Prediksi Dampak & Kompromi Kebijakan (Socioeconomic Trade-off Predictor)" berdasarkan perubahan postur APBD hasil simulasi kebijakan makro-fiskal daerah berikut:
+
+=== DATA BASELINE DAERAH ===
+Nama Daerah: ${regionData.Region}
+Provinsi: ${regionData.Province}
+Tahun / Kuartal: ${regionData.Year} ${regionData.Quarter || ""}
+PDRB Riil Baru (Estimasi/Input): Rp ${regionData.Regional_GDP_Current_Price ? regionData.Regional_GDP_Current_Price.toLocaleString("id-ID") : "Tidak ditentukan"}
+PAD Baseline: Rp ${regionData.PAD.toLocaleString("id-ID")}
+Dana Transfer Baseline: Rp ${regionData.Transfer.toLocaleString("id-ID")}
+Total Pendapatan Baseline: Rp ${regionData.Revenue.toLocaleString("id-ID")}
+Belanja Pegawai Baseline: Rp ${regionData.Personnel_Spending.toLocaleString("id-ID")}
+Belanja Modal Baseline: Rp ${regionData.Capital_Expenditure.toLocaleString("id-ID")}
+Belanja Sosial Baseline: Rp ${regionData.Social_Spending.toLocaleString("id-ID")}
+Total Belanja Baseline: Rp ${regionData.Value_Expenditure || regionData.Expenditure ? regionData.Expenditure.toLocaleString("id-ID") : "N/A"}
+Keseimbangan Fiskal Baseline: Rp ${regionData.Fiscal_Balance.toLocaleString("id-ID")}
+
+=== SHOCK SKENARIO KEBIJAKAN (SIMULASI) ===
+- Kenaikan PAD Skenario: +${scenario.padIncrease}%
+- Penurunan Dana Transfer Skenario: -${scenario.transferDecrease}%
+- Kenaikan Belanja Modal Skenario: +${scenario.capitalExpIncrease}%
+- Penurunan Belanja Pegawai Skenario: -${scenario.personnelExpDecrease}%
+- Kenaikan Belanja Sosial Skenario: +${scenario.socialExpIncrease}%
+
+=== HASIL PROYEKSI SIMULASI FISCALIA ===
+- Proyeksi Pertumbuhan Riil (PDRB): ${simResult.simulated?.gdpGrowth?.toFixed(2)}% (mengalami pergeseran dari baseline ${simResult.baseline?.gdpGrowth?.toFixed(2)}%)
+- Keseimbangan Fiskal Baru (Simulated Balance): Rp ${simResult.simulated?.balance?.toLocaleString("id-ID")}
+- Rasio Defisit Terhadap PDRB Baru: ${((Math.abs(Math.min(0, simResult.simulated?.balance)) / (regionData.Regional_GDP_Current_Price || (regionData.Revenue * 6.5))) * 100).toFixed(4)}%
+- Indeks Efisiensi Belanja: ${(simResult.metrics?.spendingEfficiency * 100).toFixed(1)}%
+- Indeks Kebocoran Keluar Wilayah (Regional Leakage): ${(simResult.metrics?.regionalLeakage * 100).toFixed(1)}%
+- Indeks Ketergantungan Transfer Pusat: ${(simResult.metrics?.fiscalDependence * 100).toFixed(1)}%
+
+Formulasikan Laporan Prediksi Dampak & Kompromi Kebijakan (Socioeconomic Trade-off Analysis) ini secara terstruktur, komprehensif, tajam, dan memiliki nilai taktis tingkat tinggi untuk Kepala Daerah (Bupati/Walikota/Gubernur) serta Kepala Badan Perencanaan Pembangunan Daerah (Bappeda). Gunakan Bahasa Indonesia akademis-analitis ekonomi pembangunan yang elegan, objektif, tanpa basa-basi klise.
+
+PENTING DAN KHUSUS: Jangan sertakan header administratif internal, kofigurasi disposisi, atau memo dinas seperti "Kepada:", "Dari:", "Tanggal:", "Perihal:", "Yth:", atau pasangan metadata administratif sejenis di bagian awal laporan. Laporan harus langsung dimulai dengan judul Laporan yang elegan dan representatif sebagai Heading utama (Heading 1).
+
+Laporan WAJIB mengikuti sistematika terstruktur dan runtut berikut dengan menyertakan penulisan judul komponen secara jelas:
+
+1. **MATRIKS KOMPROMI KEBIJAKAN (TRADE-OFF ANALYSIS)**:
+   Uraikan secara analitis kompromi/pengorbanan (trade-off) langsung demi mendapatkan hasil stimulasi pertumbuhan ekonomi tersebut berdasarkan postur guncangan yang disimulasikan:
+   - Jika Belanja Pembangunan (Modal) naik pesat, analisislah komprominya (misal: pengorbanan jaring pengaman sosial jika anggarannya terbatas, peningkatan beban utang jika defisit melebar, atau krisis likuiditas kas daerah jangka pendek).
+   - Jika Belanja Pegawai diturunkan drastis demi efisiensi, ulas komprominya secara jujur (misal: demotivasi aparatur sipil daerah, penurunan kualitas pelayanan publik di garis depan, potensi resistensi serikat pekerja asn, atau penurunan sirkulasi uang mikro lokal akibat berkurangnya belanja konsumsi PNS regional).
+   - Jika PAD dinaikkan tinggi via pajak/retribusi intensif, ulas komprominya (misal: beban tambahan bagi UMKM, penurunan gairah investasi, atau peningkatan harga-harga kebutuhan publik lokal).
+   - Jika Dana Alokasi Pusat (Transfer) ditarik/turun, ulas komprominya bagi fleksibilitas fiskal daerah.
+
+2. **DAMPAK SOSIAL: EKSTERNALITAS & RISIKO KESEJAHTERAAN**:
+   Ulas saksama proyeksi dampak spasial kebijakan ini ke beberapa klaster masyarakat:
+   - **Tingkat Kemiskinan & Gini Ratio (Ketimpangan)**: Apakah terjadi perluasan jaring pengaman kemandirian jika bansos dinaikkan? Sebaliknya, jika belanja modal mendominasi sedangkan bansos stagnan, apakah ketimpangan melebar karena pengerjaan konstruksi padat modal kurang menyentuh kelompol akar rumput dalam jangka pendek?
+   - **Daya Beli Riil Rumah Tangga (Local Consumption Power)**: Bagaimana guncangan kombinasi PAD, transfer, atau pengeluaran ASN ini mendestabilisasi konsumsi rumah tangga regional.
+   - **Layanan Dasar Publik (Public Service Delivery)**: Sejauh mana efisiensi administrasi birokrasi ini mereduksi atau mengoptimalkan akses dan kenyamanan masyarakat di puskesmas, perizinan terpadu, sanitas, dan sekolah dasar setempat.
+
+3. **INDEKS MULTIDIMENSIONAL DAMPAK SOSIAL-EKONOMI**:
+   Tuliskan estimasi skor indeks kuantitatif pro-rata (skala 0-100) yang dinilai model AI untuk parameter-parameter berikut disertai penjelasan latar belakang kalkulasinya:
+   - **Indeks Ketahanan Sosial (Social Resilience Index)**: Mengukur kesiapan jaring pengaman sosial dalam menyangga kerentanan masyarakat atas inflasi lokal atau pemangkasan pengeluaran birokrasi.
+   - **Indeks Tekanan Dunia Usaha (Business Stress Index)**: Mengukur tingkat hambatan atau tekanan pajak/retribusi baru terhadap profitabilitas pelaku usaha, kemudahan izin, dan investasi.
+   - **Indeks Kualitas Pelayanan Publik (Public Service Quality Potential)**: Mengukur potensi efektivitas birokrasi setelah diefisienkan. Apakah birokrasi berjalan lebih lincah (agile) atau menjadi rentan lumpuh layu?
+   *(Gunakan format tabel markdown atau visualisasi poin yang rapi untuk bagian ini).*
+
+4. **REKOMENDASI PENGAMAN SOSIAL-EKONOMI (SOCIOECONOMIC SAFEGUARDS)**:
+   Berikan 3-4 butir rekomendasi program perlindungan sosial-ekonomi (safety nets) operasional-konkret untuk menyeimbangkan (offset) kompromi negatif yang teridentifikasi di atas (misal: Skema padat karya infrastruktur berskala kelurahan/desa untuk menyerap pengangguran, penerapan insentif pajak mikro spesifik demi meredam gejolak PAD komersial, asuransi kesehatan mandiri, dll).
+
+Gunakan bahasa ekonomi pembangunan mikro dan makro yang meyakinkan, padat, berbobot, ilmiah, dan solutif.
+`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: promptString,
+        config: {
+          temperature: 0.65,
+        },
+      });
+
+      res.json({ tradeoff: response.text });
+    } catch (error: any) {
+      console.error("Gemini Trade-off API Error in server.ts:", error);
       res.status(500).json({ error: error.message || "Terjadi kegagalan komunikasi dengan model AI Gemini." });
     }
   });

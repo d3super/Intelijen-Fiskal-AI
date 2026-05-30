@@ -9,7 +9,7 @@ import {
 import { 
   SlidersHorizontal, ArrowRight, TrendingUp, TrendingDown, Lightbulb, 
   AlertTriangle, CheckCircle2, ShieldAlert, BookOpen, Compass, Info, Award, HelpCircle, X,
-  Save, Cloud, Loader2, Sparkles, FileText
+  Save, Cloud, Loader2, Sparkles, FileText, Scale, Coins, Activity
 } from 'lucide-react';
 import { 
   runFiscalSimulation, 
@@ -116,6 +116,7 @@ export default function PolicySimulation({
     }
   };
 
+  // AI-Powered Policy Brief States & Handlers
   const briefPdfRef = useRef<HTMLDivElement>(null);
   const [isBriefPdfDownloading, setIsBriefPdfDownloading] = useState(false);
 
@@ -885,20 +886,18 @@ export default function PolicySimulation({
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* AI-Powered Policy Brief Generation Panel */}
+                  {/* AI-Powered Unified Policy Brief & Socioeconomic Impact Analysis Panel */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
-                <Sparkles className="text-amber-500 animate-pulse" size={20} />
-                <h3 className="text-md font-bold text-slate-800">AI-Powered Policy Brief (Nota Kebijakan Cerdas)</h3>
+                <Sparkles className="text-indigo-600 animate-pulse" size={20} />
+                <h3 className="text-md font-bold text-slate-800">AI-Powered Policy Brief & Socioeconomic Impact Analysis</h3>
               </div>
               <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">GEMINI 3.5 FLASH</span>
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              Formulasikan nota penjelasan kebijakan eksekutif berstandar formal Kementerian Keuangan RI secara instan. Gemini AI akan menganalisis instrumen simulasi Anda berlandaskan multiplier makroekonomi, kebocoran wilayah, dan kedalaman stres pasar keuangan daerah.
+              Formulasikan nota penjelasan kebijakan eksekutif berstandar formal Kementerian Keuangan RI secara instan, terintegrasi penuh dengan analisis kompromi/dampak kesejahteraan sosial ekonomi daerah, indeks resiliensi, dan jaring pengaman mikro-fiskal.
             </p>
 
             {briefError && (
@@ -911,10 +910,10 @@ export default function PolicySimulation({
             {!generatedBrief && !isBriefLoading && (
               <button
                 onClick={handleGenerateBrief}
-                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer"
+                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 flex items-center justify-center space-x-2 cursor-pointer select-none"
               >
                 <Sparkles size={16} />
-                <span>Formulasikan Nota Kebijakan (AI Brief)</span>
+                <span>Formulasikan Nota Kebijakan & Kompromi Sosial Ekonomi (AI Brief)</span>
               </button>
             )}
 
@@ -923,8 +922,8 @@ export default function PolicySimulation({
                 <Loader2 className="animate-spin text-indigo-600" size={32} />
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-slate-700 animate-pulse">Menghubungkan ke Gemini API...</p>
-                  <p className="text-[10px] text-slate-400 max-w-xs">
-                    Mengevaluasi parameter multi-efek anggaran, limit defisit fisik rill 3%, kebocoran ekonomi, serta menyusun narasi rekomendasi formal.
+                  <p className="text-[10px] text-slate-400 max-w-sm mx-auto">
+                    Mengevaluasi parameter multi-efek anggaran, limit defisit fisik rill 3%, kebocoran ekonomi, resiliensi tingkat konsumsi lokal, tekanan dunia usaha, serta menyusun jaring pengaman sosial.
                   </p>
                 </div>
               </div>
@@ -937,10 +936,10 @@ export default function PolicySimulation({
                   {/* Watermark/Emblem look */}
                   <div className="border-b border-double border-slate-400 pb-4 mb-5 flex justify-between items-end">
                     <div>
-                      <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 flex items-center gap-1">
-                        <Sparkles size={12} className="text-amber-500" /> FISCALIA INTEL REPORT
+                      <h4 className="text-xs font-extrabold uppercase tracking-widest text-indigo-600 flex items-center gap-1">
+                        <Sparkles size={12} className="text-amber-500" /> FISCALIA INTEL & IMPACT REPORT
                       </h4>
-                      <p className="text-[10px] text-slate-400">NOTA PENJELASAN REGIONAL RESMI (AI-ANALYZED)</p>
+                      <p className="text-[10px] text-slate-400 font-bold">NOTA PENJELASAN FISKAL & TIMBAL BALIK SOSIAL (AI-ANALYZED)</p>
                     </div>
                     <div className="text-right text-[10px] text-slate-400">
                       <p>Kategori Risiko: <span className="font-bold text-slate-600">{simResult.riskCategory}</span></p>
@@ -951,6 +950,46 @@ export default function PolicySimulation({
                   {/* Document Content */}
                   <div className="prose prose-sm max-w-none text-xs text-justify leading-relaxed text-slate-700 space-y-4 markdown-body">
                     <ReactMarkdown>{generatedBrief}</ReactMarkdown>
+                  </div>
+                </div>
+
+                {/* Simulated Metrics Card Badges */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-4 border border-slate-200 rounded-xl">
+                  <div className="bg-white p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Resiliensi Sosial</span>
+                      <span className="text-xs font-bold block text-slate-800 mt-1">Social Resilience Index</span>
+                    </div>
+                    <div className="flex items-baseline space-x-1.5 mt-2">
+                      <span className="text-xl font-bold text-emerald-600">
+                        {scenario.socialExpIncrease > 15 ? '75 - 90' : scenario.socialExpIncrease > 5 ? '55 - 74' : '35 - 54'}
+                      </span>
+                      <span className="text-[10px] text-slate-400">/100</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tekanan Usaha</span>
+                      <span className="text-xs font-bold block text-slate-800 mt-1">Business Stress Index</span>
+                    </div>
+                    <div className="flex items-baseline space-x-1.5 mt-2">
+                      <span className={`text-xl font-bold ${scenario.padIncrease > 20 ? 'text-rose-600' : scenario.padIncrease > 5 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                        {scenario.padIncrease > 25 ? '75 - 95' : scenario.padIncrease > 10 ? '50 - 74' : '15 - 49'}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">Stress</span>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-slate-100 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kualitas Pelayanan</span>
+                      <span className="text-xs font-bold block text-slate-800 mt-1">Public Service Potential</span>
+                    </div>
+                    <div className="flex items-baseline space-x-1.5 mt-2">
+                      <span className={`text-xl font-bold ${scenario.personnelExpDecrease > 15 ? 'text-amber-500' : 'text-emerald-600'}`}>
+                        {scenario.personnelExpDecrease > 15 ? '60 - 72' : '80 - 95'}
+                      </span>
+                      <span className="text-[10px] text-slate-400">/100</span>
+                    </div>
                   </div>
                 </div>
 
@@ -973,7 +1012,7 @@ export default function PolicySimulation({
                     ) : (
                       <FileText size={14} className="text-indigo-400" />
                     )}
-                    <span>{isBriefPdfDownloading ? "Memproses PDF..." : "Unduh Laporan (PDF)"}</span>
+                    <span>{isBriefPdfDownloading ? "Memproses PDF..." : "Unduh Lapor Lengkap (PDF)"}</span>
                   </button>
                   <button
                     onClick={handleGenerateBrief}
@@ -987,10 +1026,9 @@ export default function PolicySimulation({
               </div>
             )}
           </div>
-
         </div>
-
       </div>
+    </div>
 
       {/* Structure Interpretation Modal */}
       {isStructModalOpen && (
@@ -1255,6 +1293,7 @@ export default function PolicySimulation({
           </div>
         </div>
       </div>
+
     </div>
   );
 }
