@@ -165,7 +165,7 @@ Apakah ada simulasi postur fiskal daerah lain yang ingin kita diskusikan?`,
 
       {/* Chat Window Panel */}
       {isOpen && (
-        <div className="bg-white w-[420px] h-[580px] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="bg-white w-[350px] sm:w-[420px] h-[480px] sm:h-[580px] max-h-[calc(100vh-48px)] max-w-[calc(100vw-32px)] rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
           
           {/* Header */}
           <div className="bg-slate-900 p-4 border-b border-slate-800 flex items-center justify-between">
