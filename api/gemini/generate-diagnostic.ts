@@ -79,6 +79,8 @@ Lakukan audit dan diagnosis kerentanan kritis, temukan anomali struktur anggaran
 
 Formatlah Laporan Diagnostik Anda ke dalam format markdown yang formal, sistematis, tajam, dan memiliki nilai taktis tinggi untuk Kepala Daerah serta Tim Anggaran Pemerintah Daerah (TAPD). Gunakan Bahasa Indonesia baku ilmiah ekonomi pembangunan.
 
+PENTING DAN KHUSUS: Jangan sertakan header administratif internal, disposisi dinas, atau memo dinas formal di bagian awal laporan seperti "Kepada Yth:", "Dari:", "Tanggal:", "Perihal:", "Yth:", "Nomor:", atau pasangan metadata administratif sejenis di bagian awal laporan. Laporan harus langsung dimulai dengan judul Laporan Laporan Analisis atau Judul Temuan Utama sebagai Heading utama (Heading 1).
+
 Laporan WAJIB mengikuti sistematika terstruktur berikut:
 1. **DAFTAR TEMUAN ANOMALI FISKAL (DETECTION BOARD)**: Berikan daftar anomali kritis (misalnya: belanja pegawai melampaui batas psikologis 30-40%, belanja modal infrastruktur di bawah syarat UU HKPD 20-30%, ketergantungan transfer di atas 70%, atau defisit struktural yang memakan SiLPA).
 2. **DIAGNOSIS DETAIL KERENTANAN (VULNERABILITY INDEX ANALYSIS)**: Ulas indeks kapasitas fiskal, indeks transfer dependency, serta analisis tingkat elastisitas pertumbuhan ekonomi daerah tersebut terhadap belanja daerah.
