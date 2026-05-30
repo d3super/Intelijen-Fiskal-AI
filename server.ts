@@ -279,6 +279,73 @@ Gunakan bahasa ekonomi pembangunan mikro dan makro yang meyakinkan, padat, berbo
     }
   });
 
+  // API: Fiscalia AI Sandbox Assistant Chat
+  app.post("/api/gemini/chat", async (req, res) => {
+    try {
+      const { messages, currentRegionData, allRegionsCount } = req.body;
+
+      if (!messages || !Array.isArray(messages)) {
+        res.status(400).json({ error: "Kolom 'messages' kosong atau format tidak valid." });
+        return;
+      }
+
+      const ai = getGenAI();
+
+      // We inject context about the current active region or loaded regions
+      let regionContext = "";
+      if (currentRegionData) {
+        regionContext = `
+=== KONTEKS DAERAH AKTIF SAAT INI ===
+Nama Daerah: ${currentRegionData.Region}
+Provinsi: ${currentRegionData.Province}
+Tahun / Kuartal: ${currentRegionData.Year} ${currentRegionData.Quarter || ""}
+PDRB Riil: Rp ${currentRegionData.Regional_GDP_Current_Price ? currentRegionData.Regional_GDP_Current_Price.toLocaleString("id-ID") : "N/A"}
+Laju Pertumbuhan PDRB: ${currentRegionData.GDP_Growth?.toFixed(2)}%
+PAD: Rp ${currentRegionData.PAD?.toLocaleString("id-ID")}
+Dana Transfer: Rp ${currentRegionData.Transfer?.toLocaleString("id-ID")}
+Total Pendapatan: Rp ${currentRegionData.Revenue?.toLocaleString("id-ID")}
+Belanja Pegawai: Rp ${currentRegionData.Personnel_Spending?.toLocaleString("id-ID")}
+Belanja Modal: Rp ${currentRegionData.Capital_Expenditure?.toLocaleString("id-ID")}
+Belanja Sosial: Rp ${currentRegionData.Social_Spending?.toLocaleString("id-ID")}
+Total Belanja: Rp ${currentRegionData.Expenditure?.toLocaleString("id-ID")}
+Keseimbangan Fiskal: Rp ${currentRegionData.Fiscal_Balance?.toLocaleString("id-ID")}
+Skor Stres Fiskal Baseline: ${currentRegionData.Fiscal_Stress_Score?.toFixed(1) || "N/A"}/100
+Ketergantungan Dana Transfer: ${currentRegionData.Transfer_Dependency?.toFixed(1) || "N/A"}%
+Kapasitas Fiskal: ${currentRegionData.Fiscal_Capacity_Index?.toFixed(1) || "N/A"}
+`;
+      }
+
+      const systemInstruction = `
+Anda adalah Asisten Sandbox AI Fiscalia (Fiscalia AI Sandbox Assistant) — seorang pakar virtual cerdas kebijakan fiskal regional dan perbendaharaan negara subnasional, yang dikembangkan khusus untuk Kantor Wilayah DJPb Provinsi Lampung.
+
+Karakteristik Anda:
+1. **Analitis & Berwibawa**: Jawaban Anda tajam, menggunakan terminologi anggaran formal Indonesia (seperti APBD, PAD, Belanja Modal, Belanja Pegawai, Belanja Sosial, Transfer Ke Daerah / TKD, SiLPA, dsb).
+2. **Praktis & Solutif**: Anda selalu memberikan rekomendasi mitigasi atau program yang konkret bila ditanya tentang defisit, stress score tinggi, atau kemandirian fiskal rendah.
+3. **Ramah & Edukatif**: Anda menjelaskan teori ekonomi dengan sederhana tapi mendalam (seperti konsep fiscal multiplier, regional leakage, dan ketahanan sosial daerah).
+4. **Fokus pada Lampung**: Anda memiliki pemahaman yang mendalam tentang karakteristik ekonomi di kabupaten/kota di Lampung (misal: Bandar Lampung, Metro, Pringsewu, dsb).
+
+Berikut adalah data total yang saat ini dimuat dalam aplikasi pengguna: ${allRegionsCount || 0} entitas daerah.
+${regionContext}
+
+Gunakan informasi konteks di atas untuk memberikan respons yang sangat relevan. Jika pengguna menanyakan analisis daerah aktif, gunakan data di atas untuk memberikan diagnosis instan. Jawablah menggunakan bahasa Indonesia yang santun, profesional, berbobot, dan ramah. Gunakan format markdown agar jawaban mudah dibaca.
+`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: messages,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        },
+      });
+
+      res.json({ reply: response.text });
+    } catch (error: any) {
+      console.error("Gemini Assistant Chat API Error:", error);
+      res.status(500).json({ error: error.message || "Terjadi kegagalan komunikasi dengan model AI Gemini." });
+    }
+  });
+
   // Vite development middleware OR static static folder in production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

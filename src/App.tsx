@@ -29,6 +29,7 @@ import { initAuth, googleSignIn, logout, getAccessToken } from './utils/auth';
 import { User } from 'firebase/auth';
 
 import ExportReportModal from './components/ExportReportModal';
+import AISandboxAssistant from './components/AISandboxAssistant';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -318,6 +319,9 @@ export default function App() {
           user={user}
         />
       )}
+
+      {/* Fiscalia AI Sandbox Assistant Floating converser */}
+      <AISandboxAssistant data={regionalData} />
     </div>
   );
 }
