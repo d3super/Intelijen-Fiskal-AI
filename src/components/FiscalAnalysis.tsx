@@ -1,10 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { RegionalData } from '../types';
+import ReactMarkdown from 'react-markdown';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
-import { Activity, AlertTriangle, TrendingDown, TrendingUp, ShieldAlert, Calendar, HelpCircle, X, Info } from 'lucide-react';
+import { 
+  Activity, AlertTriangle, TrendingDown, TrendingUp, ShieldAlert, Calendar, 
+  HelpCircle, X, Info, Cpu, Sparkles, CheckCircle2, Loader2, Copy, Check 
+} from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -58,6 +62,142 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
   const regionData = regionDataAllYears.find(d => d.Year === selectedYear && (d.Quarter === selectedQuarter || (!d.Quarter && !selectedQuarter))) || regionDataAllYears.find(d => d.Year === selectedYear) || regionDataAllYears[0];
 
   if (!regionData) return null;
+
+  const [aiReport, setAiReport] = useState<string>('');
+  const [loadingAi, setLoadingAi] = useState<boolean>(false);
+  const [errorAi, setErrorAi] = useState<string>('');
+  const [copied, setCopied] = useState<boolean>(false);
+
+  // Reset states when period or region selection changes
+  React.useEffect(() => {
+    setAiReport('');
+    setErrorAi('');
+    setLoadingAi(false);
+  }, [selectedRegion, selectedYear, selectedQuarter]);
+
+  const handleCopyReport = () => {
+    if (!aiReport) return;
+    navigator.clipboard.writeText(aiReport);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleGenerateDiagnostic = async () => {
+    if (!regionData) return;
+    setLoadingAi(true);
+    setErrorAi('');
+    setAiReport('');
+    try {
+      const response = await fetch('/api/gemini/generate-diagnostic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regionData })
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal berkomunikasi dengan server untuk membuat diagnosis AI.');
+      }
+
+      const resData = await response.json();
+      if (resData.error) {
+        throw new Error(resData.error);
+      }
+      setAiReport(resData.diagnostic || '');
+    } catch (err: any) {
+      console.error(err);
+      setErrorAi(err.message || 'Terjadi kesalahan tidak terduga.');
+    } finally {
+      setLoadingAi(false);
+    }
+  };
+
+  // Automated heuristic anomaly detector
+  const computedAnomalies = useMemo(() => {
+    const list: { type: 'danger' | 'warning' | 'info'; title: string; desc: string }[] = [];
+    
+    if (!regionData) return list;
+
+    const personnelRatio = (regionData.Personnel_Spending / regionData.Expenditure) * 100;
+    const capitalRatio = (regionData.Capital_Expenditure / regionData.Expenditure) * 100;
+    const dependencyRatio = regionData.Transfer_Dependency || 0;
+    const balanceRatio = regionData.Revenue > 0 ? (regionData.Fiscal_Balance / regionData.Revenue) * 100 : 0;
+    const unemployment = regionData.Unemployment || 0;
+
+    // Personnel spending anomaly
+    if (personnelRatio > 45) {
+      list.push({
+        type: 'danger',
+        title: 'Beban Belanja Pegawai Ekstrem (Overhead)',
+        desc: `Alokasi belanja pegawai mencapai ${personnelRatio.toFixed(1)}% dari total belanja. Pemborosan struktural ini menyedot ruang fiskal pembangunan daerah secara signifikan.`
+      });
+    } else if (personnelRatio > 35) {
+      list.push({
+        type: 'warning',
+        title: 'Beban Belanja Pegawai Tinggi',
+        desc: `Alokasi belanja pegawai berada di level ${personnelRatio.toFixed(1)}%. Perlu penataan formasi pegawaian atau moratorium rekrutmen non-esensial.`
+      });
+    }
+
+    // Capital expenditure underspending
+    if (capitalRatio < 15) {
+      list.push({
+        type: 'danger',
+        title: 'Infrastruktur Sempit (Underspending)',
+        desc: `Belanja modal pembangunan hanya ${capitalRatio.toFixed(1)}% dari anggaran (di bawah anjuran UU HKPD sebesar 30%). Menghambat akselerasi ekonomi jangka panjang.`
+      });
+    } else if (capitalRatio < 20) {
+      list.push({
+        type: 'warning',
+        title: 'Belanja Modal Minim',
+        desc: `Belanja modal di kisaran ${capitalRatio.toFixed(1)}%. Akselerasi pembangunan proyek strategis berisiko melambat.`
+      });
+    }
+
+    // High transfer dependency
+    if (dependencyRatio > 80) {
+      list.push({
+        type: 'danger',
+        title: 'Kerentanan Dana Transfer Ekstrem',
+        desc: `${dependencyRatio.toFixed(1)}% pendapatan berasal dari Dana Transfer Pusat. Kebijakan fiskal lokal sangat sensitif terhadap shock kebijakan fiskal nasional.`
+      });
+    } else if (dependencyRatio > 70) {
+      list.push({
+        type: 'warning',
+        title: 'Ketergantungan Transfer Tinggi',
+        desc: `Ketergantungan transfer sebesar ${dependencyRatio.toFixed(1)}%. Upaya peningkatan kemandirim PAD harus digenjot.`
+      });
+    }
+
+    // Budget Deficit
+    if (regionData.Fiscal_Balance < 0) {
+      const gdpCurrent = regionData.Regional_GDP_Current_Price || (regionData.Revenue * 6.5);
+      const deficitRatio = (Math.abs(regionData.Fiscal_Balance) / gdpCurrent) * 100;
+      if (deficitRatio > 3.0) {
+        list.push({
+          type: 'danger',
+          title: 'Defisit Anggaran Melampaui Batas Aturan',
+          desc: `Defisit berjalan mencapai ${deficitRatio.toFixed(2)}% dari estimasi PDRB. Menabrak batas kritis regulasi nasional (3.00% dari PDRB).`
+        });
+      } else {
+        list.push({
+          type: 'warning',
+          title: 'Keseimbangan Fiskal Defisit',
+          desc: `APBD mengalami defisit sebesar Rp ${Math.abs(regionData.Fiscal_Balance).toLocaleString('id-ID')}. Perlu pembiayaan atau penggunaan SiLPA.`
+        });
+      }
+    }
+
+    // Socio-economic anomalies
+    if (unemployment > 8.0) {
+      list.push({
+        type: 'warning',
+        title: 'Tekanan Pengangguran Tinggi',
+        desc: `Tingkat pengangguran terbuka sebesar ${unemployment.toFixed(2)}%. Belanja jaring pengaman sosial atau insentif investasi daerah perlu dioptimalkan.`
+      });
+    }
+
+    return list;
+  }, [regionData]);
 
   // Prepare chart data
   const revenueComposition = [
@@ -287,7 +427,135 @@ export default function FiscalAnalysis({ data }: { data: RegionalData[] }) {
           />
         </div>
       </div>
-      
+
+      {/* Smart Baseline Diagnostic & Anomaly Finder */}
+      <div className="bg-slate-900 text-slate-100 rounded-2xl p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+        {/* Decorative ambient background */}
+        <div className="absolute right-0 bottom-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 top-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-800 pb-6 mb-6">
+          <div className="flex items-center space-x-3.5 w-full md:w-auto">
+            <div className="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-indigo-400 shrink-0">
+              <Cpu size={28} className="animate-pulse" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-bold uppercase bg-indigo-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full tracking-wider">AI Powered</span>
+                <span className="text-[10px] font-bold uppercase bg-slate-800 text-emerald-400 px-2.5 py-0.5 rounded-full tracking-wider border border-slate-700">Real-time Diagnostic</span>
+              </div>
+              <h3 className="text-2xl font-extrabold text-white tracking-tight mt-1">Smart Baseline Diagnostic & Anomaly Finder</h3>
+              <p className="text-xs text-slate-400 mt-1 font-medium">Sistem Peringatan Dini otomatis mengaudit struktur anggaran dan mendeteksi anomali regional.</p>
+            </div>
+          </div>
+          <button
+            onClick={handleGenerateDiagnostic}
+            disabled={loadingAi}
+            className="px-5 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-bold rounded-xl text-xs transition duration-200 border border-indigo-500/30 shadow-lg shadow-indigo-900/30 flex items-center justify-center space-x-2 cursor-pointer shrink-0 w-full md:w-auto"
+          >
+            {loadingAi ? (
+              <Loader2 size={16} className="animate-spin text-indigo-200" />
+            ) : (
+              <Sparkles size={16} className="text-indigo-200" />
+            )}
+            <span>{loadingAi ? "Menganalisis Anggaran..." : "Jalankan AI Audit & Diagnosis Baru"}</span>
+          </button>
+        </div>
+
+        {/* Realtime Anomaly Board */}
+        <div>
+          <div className="mb-6">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+              <ShieldAlert size={14} className="text-amber-500" />
+              <span>Automated Anomaly Detection Board (Hasil Evaluasi Sistem)</span>
+            </h4>
+            
+            {computedAnomalies.length === 0 ? (
+              <div className="flex items-center space-x-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-4.5 rounded-xl">
+                <CheckCircle2 size={20} className="shrink-0" />
+                <div>
+                  <p className="text-xs font-bold">Struktur Anggaran Sehat</p>
+                  <p className="text-[11px] text-emerald-400/80">Sistem tidak mendeteksi adanya anomali atau deviasi kritis pada data keuangan daerah untuk periode ini.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {computedAnomalies.map((anomaly, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`p-4.5 rounded-xl border flex gap-3 text-xs ${
+                      anomaly.type === 'danger' 
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-200' 
+                        : 'bg-amber-500/10 border-amber-500/20 text-amber-200'
+                    }`}
+                  >
+                    <AlertTriangle size={18} className={`shrink-0 ${anomaly.type === 'danger' ? 'text-rose-400' : 'text-amber-400'}`} />
+                    <div>
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span>{anomaly.title}</span>
+                        <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono uppercase ${
+                          anomaly.type === 'danger' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          {anomaly.type === 'danger' ? 'Danger' : 'Warning'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">{anomaly.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* AI Comprehensive Findings */}
+          {loadingAi && (
+            <div className="mt-6 bg-slate-850/40 rounded-xl p-8 border border-slate-800 flex flex-col items-center justify-center space-y-4">
+              <Loader2 size={36} className="animate-spin text-indigo-500" />
+              <div className="text-center">
+                <p className="text-sm font-bold text-white">Gemini AI sedang mengaudit dan mengkalkulasi risiko fiskal...</p>
+                <p className="text-xs text-slate-400 mt-1">Mendeteksi anomali sekuritas anggaran, menguji limit risiko, dan menyusun bauran mitigasi.</p>
+              </div>
+            </div>
+          )}
+
+          {errorAi && (
+            <div className="mt-6 bg-rose-500/10 border border-rose-500/20 rounded-xl p-5 flex items-center space-x-3 text-rose-300 text-xs">
+              <AlertTriangle size={18} className="shrink-0" />
+              <p className="font-medium">{errorAi}</p>
+            </div>
+          )}
+
+          {aiReport && !loadingAi && (
+            <div className="mt-6 bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 animate-fadeIn">
+              {/* Header Box */}
+              <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-bounce" />
+                  <span className="text-xs font-bold text-white tracking-wide uppercase">Hasil Penyelidikan AI Generasi 3.5</span>
+                </div>
+                <button
+                  onClick={handleCopyReport}
+                  className="p-1 px-2.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-300 transition rounded-lg text-[10px] uppercase tracking-wider font-bold border border-slate-700/50 flex items-center space-x-1.5 cursor-pointer"
+                >
+                  {copied ? <CheckCircle2 size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                  <span>{copied ? "Tersalin" : "Salin Laporan"}</span>
+                </button>
+              </div>
+
+              {/* Rendered Markdown Area */}
+              <div className="p-8 text-slate-300 leading-relaxed text-xs space-y-4 max-h-[500px] overflow-y-auto prose prose-invert prose-xs max-w-none scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+                <ReactMarkdown>{aiReport}</ReactMarkdown>
+              </div>
+
+              {/* Footer Banner */}
+              <div className="bg-slate-900/50 border-t border-slate-900 px-6 py-3 text-[10px] text-slate-500 text-center">
+                <span>Disusun berdasar model korelasi APBD Baseline {regionData.Region} oleh Fiscalia AI Engine.</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Rules Information Modal */}
       {isRuleInfoOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
