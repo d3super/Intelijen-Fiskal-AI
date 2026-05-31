@@ -428,6 +428,16 @@ export default function PolicySimulation({
   // Run economic simulator
   const simResult: SimulationResult = runFiscalSimulation(regionData, scenario);
 
+  const baselineRiskScore = useMemo(() => {
+    if (!regionData) return 15;
+    const gdp = estimateRegionalGDP(regionData);
+    const baseBalance = regionData.Fiscal_Balance;
+    const baseDeficitRatio = baseBalance < 0 ? Math.abs(baseBalance) / gdp : 0;
+    const stressBase = regionData.Fiscal_Stress_Score || 0;
+    const score = 15 + (baseDeficitRatio * 100) * 10 + stressBase * 0.3;
+    return Math.min(100, Math.max(0, score));
+  }, [regionData]);
+
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof PolicyScenario) => {
     setScenario({ ...scenario, [field]: parseFloat(e.target.value) });
   };
@@ -462,73 +472,89 @@ export default function PolicySimulation({
 
   return (
     <div className="space-y-6">
-      {/* Header Container */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
+      {/* Symmetrical Top Bar / Control Card matching the reference dashboard */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.01)] flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+        <div className="space-y-1">
           <div className="flex items-center space-x-2">
-            <SlidersHorizontal className="text-indigo-600" size={24} />
-            <h3 className="text-xl font-bold text-slate-800">Simulasi Kebijakan Makro-Fiskal</h3>
+            <span className="p-1 px-2.5 bg-indigo-50 text-indigo-700 rounded-full font-bold text-[10px] tracking-widest uppercase">
+              STRUKTURAL SIMULATOR
+            </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1">Sistem Pemodelan Pengganda Fiskal (Fiscal Multiplier Model) Dinamis berbasis PDRB Riil.</p>
+          <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+            Simulasi Kebijakan Makro-Fiskal
+          </h2>
+          <p className="text-xs text-slate-400 font-medium">Sistem Pemodelan Pengganda Fiskal (Fiscal Multiplier Model) Dinamis berbasis PDRB Riil.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        
+        {/* Dynamic Period Dropdowns */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button 
+            type="button"
             onClick={() => setIsMethodologyOpen(!isMethodologyOpen)}
-            className="flex items-center space-x-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-xl bg-white hover:bg-slate-50 text-slate-600 transition-all text-xs font-bold shadow-sm"
           >
-            <BookOpen size={16} />
-            <span>{isMethodologyOpen ? 'Tutup Metodologi' : 'Metodologi & Parameter'}</span>
+            <BookOpen size={14} className="text-slate-400" />
+            <span>{isMethodologyOpen ? 'Sembunyikan' : 'Pedoman Model'}</span>
           </button>
-          
+
+          {/* Quarter dropdown if quarterly data exists */}
           {availableQuarters.length > 0 && (
-            <select 
-              className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              value={selectedQuarter}
-              onChange={(e) => setSelectedQuarter(e.target.value)}
-            >
-              {availableQuarters.map(q => (
-                <option key={q} value={q}>{q}</option>
-              ))}
-            </select>
+            <div className="relative">
+              <select 
+                className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100/50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-semibold"
+                value={selectedQuarter}
+                onChange={(e) => setSelectedQuarter(e.target.value)}
+              >
+                {availableQuarters.map(q => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
+            </div>
           )}
 
-          <select 
-            className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value)}
-          >
-            {uniqueRegions.map(region => (
-              <option key={region} value={region}>{region}</option>
-            ))}
-          </select>
+          {/* Region selector */}
+          <div className="relative">
+            <select 
+              className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100/50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-semibold"
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+            >
+              {uniqueRegions.map(region => (
+                <option key={region} value={region}>{region}</option>
+              ))}
+            </select>
+          </div>
 
-          <select 
-            className="px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-          >
-            {availableYears.map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
+          {/* Year selector */}
+          <div className="relative">
+            <select 
+              className="appearance-none pl-3 pr-8 py-2 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100/50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs font-semibold"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+            >
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Methodology and Explanations Popup/Panel */}
+      {/* Methodology Panel is beautifully absolute or collapsable right under */}
       {isMethodologyOpen && (
-        <div className="bg-slate-900 text-slate-200 p-6 rounded-xl border border-slate-700 slide-down">
-          <h4 className="text-md font-bold text-white mb-4 flex items-center space-x-2">
-            <Compass className="text-indigo-400" size={18} />
-            <span>Metodologi Estimasi Model: Static Partial Equilibrium Fiscal Multiplier with Structural Adjustment</span>
+        <div className="bg-slate-900 text-slate-200 p-6 rounded-3xl border border-slate-800 transition-all duration-300 shadow-xl space-y-4">
+          <h4 className="text-sm font-black text-white flex items-center gap-1.5 border-b border-slate-800 pb-3">
+            <Compass className="text-indigo-400" size={16} />
+            <span>Static Partial Equilibrium Fiscal Multiplier with Structural Adjustment</span>
           </h4>
-          <p className="text-sm text-slate-400 leading-relaxed max-w-5xl">
+          <p className="text-xs text-slate-400 leading-relaxed max-w-5xl">
             Simulasi ini memodelkan dampak guncangan (shocks) pendapatan dan belanja daerah terhadap pertumbuhan Produk Domestik Regional Bruto (PDRB) riil berdasarkan formulasi empiris yang diadaptasi dari standard IMF & OECD untuk subnasional.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6 pt-6 border-t border-slate-800">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 pt-4 text-xs">
             <div>
-              <p className="text-xs uppercase tracking-wider font-bold text-indigo-400">1. Baseline Multipliers</p>
-              <ul className="text-xs space-y-1.5 mt-2 text-slate-300">
+              <p className="text-[10px] uppercase tracking-wider font-black text-indigo-400">1. Baseline Multipliers</p>
+              <ul className="text-[11px] space-y-1.5 mt-2 text-slate-300 font-semibold">
                 <li>• Infrastruktur: <span className="text-emerald-400 font-mono">+{INFRASTRUCTURE_MULTIPLIER}x</span></li>
                 <li>• Proteksi Sosial: <span className="text-emerald-400 font-mono">+{SOCIAL_SPENDING_MULTIPLIER}x</span></li>
                 <li>• Belanja Pegawai: <span className="text-rose-400 font-mono">{PERSONNEL_MULTIPLIER}x</span></li>
@@ -537,20 +563,20 @@ export default function PolicySimulation({
               </ul>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider font-bold text-indigo-400">2. Lag Efisiensi Transmisi</p>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-[10px] uppercase tracking-wider font-black text-indigo-400">2. Lag Efisiensi Transmisi</p>
+              <p className="text-[11px] text-slate-450 text-slate-400 mt-2 leading-relaxed">
                 Kebijakan belanja modal membutuhkan rantai konstruksi panjang (<span className="text-slate-200">Lag 35% di tahun dasar</span>) sementara dana bantuan sosial langsung dibelanjakan masyarakat lokal (<span className="text-slate-200">Lag 85% langsung berputar</span>).
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider font-bold text-indigo-400">3. Struktur Kebocoran Daerah</p>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-[10px] uppercase tracking-wider font-black text-indigo-400">3. Struktur Kebocoran Daerah</p>
+              <p className="text-[11px] text-slate-450 text-slate-400 mt-2 leading-relaxed">
                 Sebagian dana melorot keluar karena impor bahan konstruksi dari luar wilayah (<span className="text-slate-200">Leakage Index</span>). Kabupaten kecil memiliki resistensi multiplier lebih rendah dibanding kota besar.
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider font-bold text-indigo-400">4. Penalti Tekanan Fiskal</p>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              <p className="text-[10px] uppercase tracking-wider font-black text-indigo-400">4. Penalti Tekanan Fiskal</p>
+              <p className="text-[11px] text-slate-450 text-slate-400 mt-2 leading-relaxed">
                 Jika tingkat defisit melebihi ambang batas risiko (<span className="text-slate-200">MAX 3% PDRB</span>), nilai multiplier dipotong secara otomatis untuk meniru crowding-out pinjaman daerah.
               </p>
             </div>
@@ -558,55 +584,269 @@ export default function PolicySimulation({
         </div>
       )}
 
-      {/* Main Grid View */}
+      {/* Bento-style KPI cards with segmented progress lines on top exactly like the requested Warehouse Inventory dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* KPI 1: Proyeksi Pertumbuhan Riil */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.01)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] transition-all duration-300">
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2">
+              <span className="flex items-center gap-1.5">
+                <Activity size={14} className="text-indigo-500 animate-pulse" />
+                <span>Proyeksi Pertumbuhan PDRB</span>
+              </span>
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600">
+                Weekly Model
+              </span>
+            </div>
+            
+            <h4 className={`text-3xl font-black tracking-tight mb-1 ${
+              simResult.simulated.gdpGrowth > simResult.baseline.gdpGrowth ? 'text-emerald-600' :
+              simResult.simulated.gdpGrowth < simResult.baseline.gdpGrowth ? 'text-rose-600' :
+              'text-slate-800'
+            }`}>
+              {simResult.simulated.gdpGrowth.toFixed(2)}%
+            </h4>
+            
+            <div className={`flex items-center text-[10px] font-bold gap-1 mt-0.5 ${
+              simResult.simulated.gdpGrowth >= simResult.baseline.gdpGrowth ? 'text-emerald-600' : 'text-rose-600'
+            }`}>
+              <span>{simResult.simulated.gdpGrowth >= simResult.baseline.gdpGrowth ? '↑' : '↓'} {(simResult.simulated.gdpGrowth - simResult.baseline.gdpGrowth).toFixed(2)}% Pergeseran Efek</span>
+              <span className="text-slate-400 font-normal">vs Baseline</span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {/* Segmented multiple-colored indicator bar mimicking the reference image */}
+            <div className="flex gap-1.5 h-1.5 w-full my-3.5">
+              <div className="h-full bg-blue-500 rounded-l-full" style={{ width: '45%' }} />
+              <div className="h-full bg-orange-500" style={{ width: '25%' }} />
+              <div className="h-full bg-emerald-500" style={{ width: '20%' }} />
+              <div className="h-full bg-purple-500 rounded-r-full" style={{ width: '10%' }} />
+            </div>
+
+            {/* Detailed metadata list under card resembling the reference image (Electronics/Apparel/Raw Materials) */}
+            <div className="space-y-2 border-t border-slate-50 pt-3 text-[11px] text-slate-500 font-bold">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-slate-705">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                  <span>Pertumbuhan Dasar</span>
+                </span>
+                <span className="font-mono text-slate-700">{simResult.baseline.gdpGrowth.toFixed(2)}%</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-slate-705">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
+                  <span>Suhu Multiplier Netto</span>
+                </span>
+                <span className="font-mono text-slate-700">+{(simResult.simulated.gdpGrowth - simResult.baseline.gdpGrowth).toFixed(2)}% yoy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 2: Keseimbangan Anggaran APBD */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.01)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] transition-all duration-300">
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2">
+              <span className="flex items-center gap-1.5">
+                <Coins size={14} className="text-orange-500" />
+                <span>Keseimbangan Anggaran</span>
+              </span>
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-600">
+                Weekly Model
+              </span>
+            </div>
+            
+            <h4 className={`text-3xl font-black tracking-tight mb-1 ${
+              simResult.simulated.balance > simResult.baseline.balance ? 'text-emerald-600' :
+              simResult.simulated.balance < simResult.baseline.balance ? 'text-rose-600' :
+              'text-slate-800'
+            }`}>
+              {formatIDR(simResult.simulated.balance)}
+            </h4>
+            
+            <div className="flex items-center text-[10px] text-orange-600 font-bold gap-1 mt-0.5">
+              <span>Defisit Rasio: {(simResult.simulated.deficitRatio * 100).toFixed(2)}% dari PDRB</span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {/* Segmented multiple-colored indicator bar mimicking the reference image */}
+            <div className="flex gap-1.5 h-1.5 w-full my-3.5">
+              <div className="h-full bg-blue-500 rounded-l-full" style={{ width: '55%' }} />
+              <div className="h-full bg-orange-500" style={{ width: '20%' }} />
+              <div className="h-full bg-emerald-500" style={{ width: '15%' }} />
+              <div className="h-full bg-purple-500 rounded-r-full" style={{ width: '10%' }} />
+            </div>
+
+            {/* Detailed metadata list under card */}
+            <div className="space-y-2 border-t border-slate-50 pt-3 text-[11px] text-slate-500 font-bold">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-slate-705">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                  <span>Total Belanja</span>
+                </span>
+                <span className="font-mono text-slate-700">{formatIDR(simResult.simulated.expenditure)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-slate-705">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 mr-2" />
+                  <span>Keseimbangan Baseline</span>
+                </span>
+                <span className="font-mono text-slate-700">{formatIDR(simResult.baseline.balance)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI 3: Indeks Risiko Skenario */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.01)] flex flex-col justify-between hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)] transition-all duration-300">
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-400 mb-2">
+              <span className="flex items-center gap-1.5">
+                <ShieldAlert size={14} className="text-emerald-500" />
+                <span>Indeks Risiko Skenario</span>
+              </span>
+              {(() => {
+                const cat = simResult.riskCategory as string;
+                let badgeClass = 'bg-rose-50 text-rose-600';
+                if (simResult.riskScore < baselineRiskScore && cat === 'Rendah') {
+                  badgeClass = 'bg-emerald-50 text-emerald-600';
+                } else if (cat === 'Sedang') {
+                  badgeClass = 'bg-orange-50 text-orange-600';
+                } else if (simResult.riskScore > baselineRiskScore && (cat === 'Tinggi' || cat === 'Kritis')) {
+                  badgeClass = 'bg-rose-50 text-rose-600';
+                } else {
+                  if (cat === 'Rendah') {
+                    badgeClass = 'bg-emerald-50 text-emerald-600';
+                  } else if (cat === 'Sedang') {
+                    badgeClass = 'bg-orange-50 text-orange-600';
+                  } else {
+                    badgeClass = 'bg-rose-50 text-rose-600';
+                  }
+                }
+                return (
+                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${badgeClass}`}>
+                    {simResult.riskCategory}
+                  </span>
+                );
+              })()}
+            </div>
+            
+            {(() => {
+              const cat = simResult.riskCategory as string;
+              let scoreColorClass = 'text-slate-800';
+              if (simResult.riskScore < baselineRiskScore && cat === 'Rendah') {
+                scoreColorClass = 'text-emerald-600';
+              } else if (cat === 'Sedang') {
+                scoreColorClass = 'text-orange-500';
+              } else if (simResult.riskScore > baselineRiskScore && (cat === 'Tinggi' || cat === 'Kritis')) {
+                scoreColorClass = 'text-rose-600';
+              } else {
+                if (cat === 'Rendah') {
+                  scoreColorClass = 'text-emerald-600';
+                } else if (cat === 'Sedang') {
+                  scoreColorClass = 'text-orange-500';
+                } else {
+                  scoreColorClass = 'text-rose-600';
+                }
+              }
+              return (
+                <h4 className={`text-3xl font-black tracking-tight mb-1 ${scoreColorClass}`}>
+                  {simResult.riskScore.toFixed(0)} <span className="text-xs text-slate-400 font-bold">/ 100</span>
+                </h4>
+              );
+            })()}
+            
+            <div className="flex items-center text-[10px] text-slate-400 font-bold mt-0.5">
+              <span>Berdasarkan Stress-Test Model</span>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {/* Segmented multiple-colored indicator bar mimicking the reference image */}
+            <div className="flex gap-1.5 h-1.5 w-full my-3.5">
+              <div className="h-full bg-blue-500 rounded-l-full" style={{ width: '8%' }} />
+              <div className="h-full bg-orange-500" style={{ width: '8%' }} />
+              <div className="h-full bg-emerald-500" style={{ width: '4%' }} />
+              <div className="h-full bg-purple-500 rounded-r-full" style={{ width: '80%' }} />
+            </div>
+
+            {/* Detailed metadata list under card */}
+            <div className="space-y-2 border-t border-slate-50 pt-3 text-[11px] text-slate-500 font-bold">
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-slate-705">
+                  <span className="w-2 h-2 rounded-full bg-purple-500 mr-2" />
+                  <span>Kecepatan Leakage</span>
+                </span>
+                <span className="font-mono text-slate-700">{(simResult.metrics.regionalLeakage * 100).toFixed(0)}% Outflow</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="flex items-center text-slate-705">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+                  <span>Koefisien Efisiensi</span>
+                </span>
+                <span className="font-mono text-slate-700">{(simResult.metrics.spendingEfficiency * 100).toFixed(0)}% Alokatif</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Column structures: Left - Controls panel, Right - Diagnostics & Visualizations Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left Side: Controls & Scenario Presets (Col 4) */}
+        {/* Column 1: Slider Instruments & Structural Characteristics (Col 4) */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+          
+          {/* Symmetrical Left Deck */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-[0_4px_24px_rgb(0,0,0,0.01)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-md font-bold text-slate-800">Instrumen Skenario</h4>
+              <h4 className="text-sm font-black text-slate-850 text-slate-800 tracking-tight">Instrumen Skenario</h4>
               <button 
                 onClick={() => applyPreset('custom')}
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-wider"
               >
                 Reset Sliders
               </button>
             </div>
             
-            {/* Quick Presets Section */}
+            {/* Quick Presets Grid with beautiful buttons & Sheets Cloud sync */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Simulasi Skenario Presets</span>
+                <span className="text-[9px] font-extrabold text-slate-450 text-slate-400 uppercase tracking-widest">Simulasi Skenario Presets</span>
                 <div className="grid grid-cols-2 gap-2">
                   <button 
                     onClick={() => applyPreset('infrashock')}
-                    className="px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg text-xs font-bold hover:bg-emerald-100/70 transition-colors cursor-pointer"
+                    className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-xl text-xs font-bold text-emerald-700 transition-all cursor-pointer active:scale-95"
                   >
                     Pro-Infrastruktur
                   </button>
                   <button 
                     onClick={() => applyPreset('socialcare')}
-                    className="px-3 py-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg text-xs font-bold hover:bg-amber-100/70 transition-colors cursor-pointer"
+                    className="px-3 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-xl text-xs font-bold text-amber-700 transition-all cursor-pointer active:scale-95"
                   >
                     Proteksi Sosial
                   </button>
                   <button 
                     onClick={() => applyPreset('independence')}
-                    className="px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg text-xs font-bold hover:bg-indigo-100/70 transition-colors cursor-pointer"
+                    className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-xl text-xs font-bold text-indigo-700 transition-all cursor-pointer active:scale-95"
                   >
                     Ekspansi PAD
                   </button>
                   <button 
                     onClick={() => applyPreset('austerity')}
-                    className="px-3 py-2 bg-rose-50 text-rose-700 border border-rose-100 rounded-lg text-xs font-bold hover:bg-rose-100/70 transition-colors cursor-pointer"
+                    className="px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-100 rounded-xl text-xs font-bold text-rose-700 transition-all cursor-pointer active:scale-95"
                   >
                     Austeritas Ketat
                   </button>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-100">
+              {/* Sync to sheets action */}
+              <div className="pt-2 border-t border-slate-50">
                 <button
                   type="button"
                   onClick={() => {
@@ -614,205 +854,112 @@ export default function PolicySimulation({
                     setSaveDescription(`Skenario kustom untuk daerah ${selectedRegion} tahun anggaran ${selectedYear}${selectedQuarter ? ` ${selectedQuarter}` : ''}.`);
                     setIsSaveModalOpen(true);
                   }}
-                  className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs shadow-sm transition-all hover:shadow cursor-pointer select-none"
+                  className="w-full flex items-center justify-center space-x-2 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-sm transition-all hover:shadow-md cursor-pointer select-none active:scale-95"
                 >
-                  <Save size={14} className="flex-shrink-0" />
-                  <span>Simpan Skenario Kustom ke Sheets</span>
+                  <Cloud size={14} className="flex-shrink-0" />
+                  <span>Simpan ke Google Sheets</span>
                 </button>
               </div>
             </div>
 
-            <div className="space-y-5 pt-3 border-t border-slate-100">
+            {/* Custom optimized slider ranges */}
+            <div className="space-y-4 pt-4 border-t border-slate-100">
               <SliderControl 
                 label="Peningkatan Tarif PAD (Retribusi/Pajak)" 
                 value={scenario.padIncrease} 
-                onChange={(e) => handleSliderChange(e, 'padIncrease')} 
+                onChange={(e: any) => handleSliderChange(e, 'padIncrease')} 
                 min={0} max={50} unit="%" 
                 color="indigo"
               />
               <SliderControl 
                 label="Tambahan Belanja Pembangunan (Capital)" 
                 value={scenario.capitalExpIncrease} 
-                onChange={(e) => handleSliderChange(e, 'capitalExpIncrease')} 
+                onChange={(e: any) => handleSliderChange(e, 'capitalExpIncrease')} 
                 min={0} max={50} unit="%" 
                 color="emerald"
               />
               <SliderControl 
                 label="Pengurangan Belanja Pegawai (Efisiensi)" 
                 value={scenario.personnelExpDecrease} 
-                onChange={(e) => handleSliderChange(e, 'personnelExpDecrease')} 
+                onChange={(e: any) => handleSliderChange(e, 'personnelExpDecrease')} 
                 min={0} max={30} unit="%" 
                 color="rose"
               />
               <SliderControl 
                 label="Tambahan Bantuan Sosial Mandiri" 
                 value={scenario.socialExpIncrease} 
-                onChange={(e) => handleSliderChange(e, 'socialExpIncrease')} 
+                onChange={(e: any) => handleSliderChange(e, 'socialExpIncrease')} 
                 min={0} max={50} unit="%" 
                 color="amber"
               />
               <SliderControl 
                 label="Pengurangan Dana Alokasi Pusat" 
                 value={scenario.transferDecrease} 
-                onChange={(e) => handleSliderChange(e, 'transferDecrease')} 
+                onChange={(e: any) => handleSliderChange(e, 'transferDecrease')} 
                 min={0} max={30} unit="%" 
                 color="blue"
               />
             </div>
           </div>
 
-          {/* Regional Context Metrics Diagnostic Card */}
-          <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-4">
+          {/* Regional Context Metrics Diagnostic Card Symmetrical */}
+          <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200/60 space-y-4">
             <div className="flex justify-between items-center">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1">
-                <Info size={14} />
-                <span>Karakteristik Struktural Daerah ({regionData.Region})</span>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center space-x-1">
+                <Info size={14} className="text-slate-400" />
+                <span>Karakteristik Struktural ({regionData.Region})</span>
               </h4>
               <button 
                 onClick={() => setIsStructModalOpen(true)}
-                className="text-xs flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors"
-                title="Lihat interpretasi variabel"
+                className="text-[10px] font-bold flex items-center gap-1 text-indigo-600 hover:text-indigo-800 bg-white hover:bg-slate-100 px-2.5 py-1 rounded-xl transition-all border border-slate-200"
               >
-                <HelpCircle size={14} />
-                <span>Interpretasi</span>
+                <HelpCircle size={12} />
+                <span>Intepretasi</span>
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white p-3 rounded-lg border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-medium">Estimasi PDRB Riil:</span>
-                <span className="text-sm font-mono font-bold text-slate-800">{formatIDR(simResult.metrics.regionalGDP)}</span>
+            
+            <div className="grid grid-cols-2 gap-3 text-xs font-bold font-mono">
+              <div className="bg-white p-3 rounded-2xl border border-slate-150">
+                <span className="text-[9px] text-slate-400 block font-semibold font-sans mb-0.5">PDRB Riil:</span>
+                <span className="text-slate-800">{formatIDR(simResult.metrics.regionalGDP)}</span>
               </div>
-              <div className="bg-white p-3 rounded-lg border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-medium">Koefisien Efisiensi:</span>
-                <span className="text-sm font-mono font-bold text-indigo-600">{(simResult.metrics.spendingEfficiency * 100).toFixed(0)}%</span>
+              <div className="bg-white p-3 rounded-2xl border border-slate-150">
+                <span className="text-[9px] text-slate-400 block font-semibold font-sans mb-0.5">Pendapatan:</span>
+                <span className="text-indigo-600">{(simResult.metrics.spendingEfficiency * 100).toFixed(0)}% Efisien</span>
               </div>
-              <div className="bg-white p-3 rounded-lg border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-medium">Regional Leakage:</span>
-                <span className="text-sm font-mono font-bold text-rose-600">{(simResult.metrics.regionalLeakage * 100).toFixed(0)}%</span>
+              <div className="bg-white p-3 rounded-2xl border border-slate-150">
+                <span className="text-[9px] text-slate-400 block font-semibold font-sans mb-0.5">Regional Leakage:</span>
+                <span className="text-rose-600">{(simResult.metrics.regionalLeakage * 100).toFixed(0)}% Bocor</span>
               </div>
-              <div className="bg-white p-3 rounded-lg border border-slate-200">
-                <span className="text-[10px] text-slate-400 block font-medium">Ketergantungan Transfer:</span>
-                <span className="text-sm font-mono font-bold text-indigo-600">{(simResult.metrics.fiscalDependence * 100).toFixed(0)}%</span>
+              <div className="bg-white p-3 rounded-2xl border border-slate-150">
+                <span className="text-[9px] text-slate-400 block font-semibold font-sans mb-0.5">Tk. Ketergantungan:</span>
+                <span className="text-indigo-600">{(simResult.metrics.fiscalDependence * 100).toFixed(0)}% TKD</span>
               </div>
             </div>
           </div>
+
         </div>
 
-        {/* Right Side: Simulation Analytical Outputs (Col 8) */}
+        {/* Column 2: Analytical visualization charts & Recommendations (Col 8) */}
         <div className="lg:col-span-8 space-y-6">
           
-          {/* Main Headline Indicators */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Impact 1: GDP Economic Growth */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Proyeksi Pertumbuhan Riil</span>
-                <div className="flex items-center space-x-1.5 mt-2">
-                  <span className="text-sm font-semibold text-slate-400">Baseline:</span>
-                  <span className="text-sm font-medium text-slate-700">{simResult.baseline.gdpGrowth.toFixed(2)}%</span>
-                </div>
-              </div>
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <span className="text-[10px] font-semibold text-indigo-500 block uppercase">Simulasi Model</span>
-                  <div className="flex items-baseline space-x-1">
-                    <p className={`text-3xl font-extrabold ${simResult.simulated.gdpGrowth > simResult.baseline.gdpGrowth ? 'text-emerald-600' : simResult.simulated.gdpGrowth < simResult.baseline.gdpGrowth ? 'text-rose-600' : 'text-slate-800'}`}>
-                      {simResult.simulated.gdpGrowth.toFixed(2)}%
-                    </p>
-                    <span className="text-xs text-slate-400">yoy</span>
-                  </div>
-                </div>
-                {simResult.simulated.gdpGrowth !== simResult.baseline.gdpGrowth && (
-                  <div className={`p-1.5 rounded-full ${simResult.simulated.gdpGrowth > simResult.baseline.gdpGrowth ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                    {simResult.simulated.gdpGrowth > simResult.baseline.gdpGrowth ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
-                  </div>
-                )}
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-100">
-                <span className="text-[10px] text-slate-400 block">
-                  Net Impact: <span className={simResult.simulated.gdpGrowth >= simResult.baseline.gdpGrowth ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>{(simResult.simulated.gdpGrowth - simResult.baseline.gdpGrowth).toFixed(2)}%</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Impact 2: Fiscal Balance & Deficit Scale */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Keseimbangan Anggaran</span>
-                <div className="flex items-center space-x-1.5 mt-2">
-                  <span className="text-sm font-semibold text-slate-400">Awal:</span>
-                  <span className="text-sm font-medium text-slate-700">{formatIDR(simResult.baseline.balance)}</span>
-                </div>
-              </div>
-              <div className="mt-4 flex items-end justify-between">
-                <div>
-                  <span className="text-[10px] font-semibold text-indigo-500 block uppercase">Simulasi Saldo</span>
-                  <p className={`text-xl font-extrabold ${simResult.simulated.balance >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {formatIDR(simResult.simulated.balance)}
-                  </p>
-                </div>
-                {simResult.simulated.balance > simResult.baseline.balance ? (
-                  <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded">Perbaikan</span>
-                ) : simResult.simulated.balance < simResult.baseline.balance ? (
-                  <span className="text-xs text-rose-600 font-bold bg-rose-50 px-2 py-1 rounded">Pelebaran</span>
-                ) : null}
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-100 flex justify-between text-[10px] text-slate-400">
-                <span>Rasio Defisit/PDRB:</span>
-                <span className={`font-mono font-bold ${simResult.simulated.deficitRatio > MAX_DEFICIT_RATIO ? 'text-rose-600' : 'text-slate-700'}`}>{(simResult.simulated.deficitRatio * 100).toFixed(2)}%</span>
-              </div>
-            </div>
-
-            {/* Impact 3: Risk Assessment Index */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Indeks Risiko Skenario</span>
-                <div className="mt-3 flex items-baseline justify-between">
-                  <span className={`text-2xl font-extrabold ${simResult.riskScore > 75 ? 'text-rose-600' : simResult.riskScore > 50 ? 'text-amber-500' : 'text-emerald-600'}`}>
-                    {simResult.riskScore.toFixed(0)}
-                  </span>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                    simResult.riskCategory === 'Kritis' ? 'bg-rose-100 text-rose-800' :
-                    simResult.riskCategory === 'Tinggi' ? 'bg-amber-100 text-amber-800' :
-                    simResult.riskCategory === 'Sedang' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
-                  }`}>
-                    {simResult.riskCategory}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-1.5 mt-2">
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full ${
-                      simResult.riskScore > 75 ? 'bg-rose-500' : simResult.riskScore > 50 ? 'bg-amber-500' : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${simResult.riskScore}%` }}
-                  />
-                </div>
-                <p className="text-[9px] text-slate-400 block leading-tight">Diuji berdasarkan defisit maksimum, guncangan sirkulasi, dan margin likuiditas.</p>
-              </div>
-            </div>
-
-          </div>
-
           {/* Validation Risk Warnings List Panel (If Any) */}
           {simResult.warnings.length > 0 && (
-            <div className="bg-white p-5 rounded-xl border border-rose-100 shadow-sm space-y-3">
-              <h4 className="text-sm font-extrabold text-slate-800 flex items-center space-x-2">
-                <ShieldAlert className="text-rose-600" size={18} />
+            <div className="bg-rose-50 border border-rose-200 p-5 rounded-3xl space-y-3">
+              <h4 className="text-xs font-black text-rose-850 flex items-center gap-1.5 uppercase tracking-wide">
+                <ShieldAlert className="text-rose-600" size={16} />
                 <span>Peringatan Kelayakan Makro-Fiskal ({simResult.warnings.length})</span>
               </h4>
               <div className="space-y-2">
                 {simResult.warnings.map((w, idx) => (
-                  <div key={idx} className={`p-3 rounded-lg flex items-start space-x-3 text-xs leading-relaxed ${
-                    w.type === 'critical' ? 'bg-rose-50 text-rose-800 border-l-4 border-rose-600' :
-                    w.type === 'warning' ? 'bg-amber-50 text-amber-800 border-l-4 border-amber-500' : 'bg-blue-50 text-blue-800 border-l-4 border-blue-500'
+                  <div key={idx} className={`p-3 rounded-2xl flex items-start gap-3 text-[11px] leading-relaxed bg-white border-l-4 ${
+                    w.type === 'critical' ? 'border-rose-600 text-rose-900 shadow-sm' :
+                    w.type === 'warning' ? 'border-amber-500 text-amber-900 shadow-sm' : 'border-blue-500 text-slate-900 shadow-sm'
                   }`}>
-                    <AlertTriangle className="flex-shrink-0 mt-0.5" size={16} />
+                    <AlertTriangle className="flex-shrink-0 mt-0.5 text-rose-500" size={14} />
                     <div>
-                      <h5 className="font-bold">{w.title}</h5>
-                      <p className="mt-0.5 text-[11px] opacity-90">{w.description}</p>
+                      <h5 className="font-extrabold">{w.title}</h5>
+                      <p className="mt-0.5 opacity-90 text-slate-500 font-semibold">{w.description}</p>
                     </div>
                   </div>
                 ))}
@@ -820,14 +967,14 @@ export default function PolicySimulation({
             </div>
           )}
 
-          {/* Narrative & Multiplier Shock Impact Breakdown Panel */}
-          <div className="bg-indigo-50/80 p-6 rounded-xl border border-indigo-100 shadow-sm">
-            <div className="flex items-center space-x-2 mb-4 border-b border-indigo-100 pb-2">
-              <Lightbulb className="text-indigo-600" size={24} />
-              <h3 className="text-md font-bold text-indigo-900">Pembongkaran Efek Pengganda (Multiplier Impact Breakdown)</h3>
+          {/* Symmetrical multiplier impact split display */}
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-150 space-y-4">
+            <div className="flex items-center gap-1.5 mb-2 pb-2 border-b border-slate-200">
+              <Lightbulb className="text-orange-500 animate-bounce" size={18} />
+              <h3 className="text-sm font-black text-slate-800">Pembongkaran Efek Pengganda (Multiplier Impact Breakdown)</h3>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <ImpactBadge label="Belanja Modal" impact={simResult.impactBreakdown.capitalImpact} />
               <ImpactBadge label="Belanja Sosial" impact={simResult.impactBreakdown.socialImpact} />
               <ImpactBadge label="Administrasi Pegawai" impact={simResult.impactBreakdown.personnelImpact} />
@@ -835,58 +982,67 @@ export default function PolicySimulation({
               <ImpactBadge label="Dana Pusat" impact={simResult.impactBreakdown.transferImpact} />
             </div>
 
-            <p className="text-xs text-slate-700 leading-relaxed bg-white p-3.5 rounded-lg border border-slate-100">
-              Pertumbuhan riil disimulasikan dari baseline <span className="font-bold">{simResult.baseline.gdpGrowth.toFixed(2)}%</span> bergeser sebesar <span className={`font-bold ${simResult.simulated.gdpGrowth >= simResult.baseline.gdpGrowth ? 'text-emerald-600' : 'text-rose-600'}`}>{(simResult.simulated.gdpGrowth - simResult.baseline.gdpGrowth).toFixed(2)}%</span> menuju <span className="font-bold">{simResult.simulated.gdpGrowth.toFixed(2)}%</span>. Model ini memperhitungkan <span className="font-semibold text-indigo-600">Lag Transmisi</span> dan kebocoran ekonomi wilayah (<span className="font-semibold">Regional Leakage</span>).
+            <p className="text-[11px] text-slate-500 leading-relaxed bg-white p-4 rounded-2xl border border-slate-150 font-medium">
+              Pertumbuhan riil disimulasikan dari baseline <span className="font-bold text-slate-800">{simResult.baseline.gdpGrowth.toFixed(2)}%</span> bergeser sebesar <span className={`font-bold ${simResult.simulated.gdpGrowth >= simResult.baseline.gdpGrowth ? 'text-emerald-600' : 'text-rose-600'}`}>{(simResult.simulated.gdpGrowth - simResult.baseline.gdpGrowth).toFixed(2)}%</span> menuju <span className="font-bold text-slate-800">{simResult.simulated.gdpGrowth.toFixed(2)}%</span>. Model ini memperhitungkan <span className="font-semibold text-indigo-600">Lag Transmisi</span> dan kebocoran ekonomi wilayah (<span className="font-semibold">Regional Leakage</span>).
             </p>
           </div>
 
-          {/* Budget Comparison Bar Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-md font-bold text-slate-800">Visualisasi Perbandingan Anggaran</h3>
-              <span className="text-xs text-slate-400">Dalam juta/miliar Rupiah (IDR)</span>
+          {/* Symmetrical Recharts Bar Chart */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.01)]">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
+              <div>
+                <h3 className="text-sm font-black text-slate-800 tracking-tight">Visualisasi Perbandingan Anggaran Murni</h3>
+                <p className="text-[10px] text-slate-400 font-medium">Komparasi postur anggaran awal sirkulasi regional terhadap bauran simulasi baru.</p>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Juta / Miliar Rupiah (IDR)</span>
             </div>
-            <div className="h-72">
+            
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={comparisonData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                  <YAxis tickFormatter={(val) => formatIDR(val).replace('Rp', '')} stroke="#64748b" fontSize={11} />
-                  <Tooltip formatter={(value: number) => formatIDR(value)} />
-                  <Legend />
-                  <Bar dataKey="Awal" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={40} />
-                  <Bar dataKey="Simulasi" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={40} />
+                <BarChart data={comparisonData} margin={{ top: 20, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis tickFormatter={(val: any) => formatIDR(val).replace('Rp', '')} stroke="#94a3b8" fontSize={9} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    contentStyle={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)' }} 
+                    formatter={(value: number) => [formatIDR(value), '']}
+                  />
+                  <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: 10, paddingTop: 10 }} />
+                  <Bar dataKey="Awal" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={32} />
+                  <Bar dataKey="Simulasi" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* AI Advisor Recommendations ( IMF / OECD standards ) */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
-            <h3 className="text-md font-bold text-slate-800 flex items-center space-x-2 border-b border-slate-100 pb-3">
-              <Award className="text-indigo-600" size={18} />
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.01)] space-y-4">
+            <h3 className="text-sm font-black text-slate-800 flex items-center gap-1.5 border-b border-slate-50 pb-3">
+              <Award className="text-indigo-600" size={16} />
               <span>Rekomendasi Kebijakan Penyeimbang (Macro-Fiscal Consultations)</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {simResult.recommendations.map((rec, ind) => (
-                <div key={ind} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 flex flex-col justify-between">
+                <div key={ind} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-150 space-y-2 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                        rec.priority === 'high' ? 'bg-rose-100 text-rose-800' :
-                        rec.priority === 'medium' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'
+                      <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase ${
+                        rec.priority === 'high' ? 'bg-rose-50 text-rose-600' :
+                        rec.priority === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-600'
                       }`}>
-                        Prioritas {rec.priority}
+                        Prioritas {rec.priority === 'high' ? 'Tinggi' : rec.priority === 'medium' ? 'Sedang' : 'Opsional'}
                       </span>
                     </div>
-                    <h4 className="text-xs font-bold text-slate-800 mt-2 uppercase">{rec.title}</h4>
-                    <p className="text-xs text-slate-600 leading-tight mt-1">{rec.description}</p>
+                    <h4 className="text-xs font-black text-slate-800 mt-2 uppercase">{rec.title}</h4>
+                    <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mt-1">{rec.description}</p>
                   </div>
                 </div>
               ))}
             </div>
-                  {/* AI-Powered Unified Policy Brief & Socioeconomic Impact Analysis Panel */}
+          </div>
+
+          {/* AI-Powered Unified Policy Brief & Socioeconomic Impact Analysis Panel */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center space-x-2">
@@ -1028,7 +1184,6 @@ export default function PolicySimulation({
           </div>
         </div>
       </div>
-    </div>
 
       {/* Structure Interpretation Modal */}
       {isStructModalOpen && (

@@ -129,7 +129,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard data={regionalData} />;
+        return <Dashboard data={regionalData} setActiveTab={setActiveTab} />;
       case 'upload':
         return <DataUpload onUpload={handleDataUpload} />;
       case 'analysis':
@@ -158,7 +158,7 @@ export default function App() {
       case 'glossary':
         return <Glossary />;
       default:
-        return <Dashboard data={regionalData} />;
+        return <Dashboard data={regionalData} setActiveTab={setActiveTab} />;
     }
   };
 
